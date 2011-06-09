@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <list>
+using namespace std;
 
 /**
  * 17. Header.
@@ -207,7 +209,7 @@ typedef struct gif_lgc_scr_desc_t
 }GifLgcScrDesc;
 
 /**
-19. Global Color Table.
+ *19. Global Color Table.
  *
  *      a. Description. This block contains a color table, which is a sequence of
  *      bytes representing red-green-blue color triplets. The Global Color Table
@@ -222,30 +224,6 @@ typedef struct gif_lgc_scr_desc_t
  *      per Data Stream.
  *
  *      b. Required Version.  87a
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *                                                                        11
- *
  *
  *      c. Syntax.
  *
@@ -276,7 +254,19 @@ typedef struct gif_lgc_scr_desc_t
  *
  *      e. Recommendation. None.
  */
+typedef struct gif_color_triplet_t
+{
+   BYTE red;
+   BYTE green;
+   BYTE blue;
+}GifColorTriplet;
 
+typedef struct gif_color_tbl_t
+{
+   GifColorTriplet[256];
+}GifColorTable;
+
+typedef GifColorTable GifGlobalColorTable;
 
 /*
  *20. Image Descriptor.
@@ -455,7 +445,7 @@ typedef struct gif_image_desc_t
  *
  *     e. Recommendations. None.
  */
-
+typedef GifColorTable GifLocalColorTable;
 
 
 /**
@@ -972,3 +962,44 @@ typedef struct gif_appl_ext
  *
  *      e. recommendations. none.
  */
+typedef BYTE GifTrailer;
+
+/*
+ *The Grammar.
+ *
+ *<GIF Data Stream> ::=     Header <Logical Screen> <Data>* Trailer
+ *
+ *<Logical Screen> ::=      Logical Screen Descriptor [Global Color Table]
+ *
+ *<Data> ::=                <Graphic Block>  |
+ *                          <Special-Purpose Block>
+ *
+ *<Graphic Block> ::=       [Graphic Control Extension] <Graphic-Rendering Block>
+ *
+ *<Graphic-Rendering Block> ::=  <Table-Based Image>  |
+ *                               Plain Text Extension
+ *
+ *<Table-Based Image> ::=   Image Descriptor [Local Color Table] Image Data
+ *
+ *<Special-Purpose Block> ::=    Application Extension  |
+ *                               Comment Extension
+ */
+typedef struct gif_lgc_scr_t
+{
+   GifLgcScrDesc log_scr_desc;
+   GifGlobalColorTable *global_color_tbl;
+}GifLgcScr;
+
+typedef struct gif_data_t
+{
+
+}GifData;
+
+typedef struct gif_data_stream_t
+{
+   GifHeader;
+   GifLgcScr;
+   list<GifData> data;
+}GifDataStream;
+
+
