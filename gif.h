@@ -1,5 +1,7 @@
+#ifndef GIF_H
+#define GIF_H
+
 #include <stdint.h>
-#include <list>
 using namespace std;
 
 /**
@@ -69,11 +71,11 @@ using namespace std;
  *            ability, perhaps after warning the user that the data may be
  *            incomplete.
  **/
-typedef struct gif_header_t
+typedef struct 
 {
-   BYTE signature[3];
-   BYTE version[3];
-}GifHeader;
+   char signature[3];
+   char version[3];
+}gif_header_t;
 
 /**
  * 18. Logical Screen Descriptor.
@@ -193,20 +195,20 @@ typedef struct gif_header_t
  *
  *      e. Recommendations. None.
  **/
-typedef struct gif_lgc_scr_desc_t
+typedef struct 
 {
    uint16_t lgc_scr_width;
    uint16_t lgc_scr_height;
    struct global_flag_t
    {
-      BYTE global_color_tbl_sz     : 3;
-      BYTE sort_flag               : 1;
-      BYTE color_resolution        : 3;
-      BYTE global_color_table_flag : 1;
+      char global_color_tbl_sz     : 3;
+      char sort_flag               : 1;
+      char color_resolution        : 3;
+      char global_color_table_flag : 1;
    }  global_flag;
-   BYTE bg_color_index;
-   BYTE pixel_aspect_ratio;
-}GifLgcScrDesc;
+   char bg_color_index;
+   char pixel_aspect_ratio;
+}gif_lgc_scr_desc_t;
 
 /**
  *19. Global Color Table.
@@ -254,19 +256,17 @@ typedef struct gif_lgc_scr_desc_t
  *
  *      e. Recommendation. None.
  */
-typedef struct gif_color_triplet_t
+typedef struct 
 {
-   BYTE red;
-   BYTE green;
-   BYTE blue;
-}GifColorTriplet;
+   char red;
+   char green;
+   char blue;
+}gif_color_triplet_t;
 
-typedef struct gif_color_tbl_t
+typedef struct 
 {
-   GifColorTriplet[256];
-}GifColorTable;
-
-typedef GifColorTable GifGlobalColorTable;
+   gif_color_triplet_t color_table[256];
+}gif_color_tbl_t;
 
 /*
  *20. Image Descriptor.
@@ -380,22 +380,22 @@ typedef GifColorTable GifGlobalColorTable;
  *     e. Recommendation. None.
  */
 
-typedef struct gif_image_desc_t
+typedef struct 
 {
-   BYTE image_sep;
-   WORD image_left;
-   WORD image_top;
-   WORD image_width;
-   WORD image_height;
+   char image_sep;
+   uint32_t image_left;
+   uint32_t image_top;
+   uint32_t image_width;
+   uint32_t image_height;
    struct local_flag_t
    {
-      BYTE local_color_tbl_sz   : 3;
-      BYTE reserved             : 2;
-      BYTE sort_flag            : 1;
-      BYTE interlace_flag       : 1;
-      BYTE local_color_tbl_flag : 1;
+      char local_color_tbl_sz   : 3;
+      char reserved             : 2;
+      char sort_flag            : 1;
+      char interlace_flag       : 1;
+      char local_color_tbl_flag : 1;
    }  local_flag;
-}GifImageDesc;
+}gif_image_desc_t;
 
 /**
  *21. Local Color Table.
@@ -445,7 +445,6 @@ typedef struct gif_image_desc_t
  *
  *     e. Recommendations. None.
  */
-typedef GifColorTable GifLocalColorTable;
 
 
 /**
@@ -484,6 +483,13 @@ typedef GifColorTable GifLocalColorTable;
  *
  *     e. Recommendations. None.
  */
+
+typedef struct 
+{
+   BTYE lzw_min_code_size;
+   BTYE *data;
+   size_t data_len;
+}gif_table_based_image_data_t;
 
 /*
  *23. Graphic Control Extension.
@@ -615,23 +621,23 @@ typedef GifColorTable GifLocalColorTable;
  *            indefinitely.  It is recommended that the encoder not set the User
  *            Input Flag without a Delay Time specified.
  */
-typedef struct gif_ctrl_ext_t
+typedef struct 
 {
-   BYTE ext_introducer;
-   BYTE graphic_ctrl_label;
+   char ext_introducer;
+   char graphic_ctrl_label;
 
-   BYTE block_size;
+   char block_size;
    struct flag_t
    {
-      BYTE transparent_color_flag   : 1;
-      BYTE user_input_flag          : 1;
-      BYTE disposal_method          : 3;
-      BYTE reserved                 : 3;
+      char transparent_color_flag   : 1;
+      char user_input_flag          : 1;
+      char disposal_method          : 3;
+      char reserved                 : 3;
    }  flag;
-   WORD delay_time;
-   BYTE transparent_color_index;
-   BYTE block_terminator;
-}GifCtrlExt;
+   uint32_t delay_time;
+   char transparent_color_index;
+   char block_terminator;
+}gif_graphic_ctrl_ext_t;
 
 /**
  *24. Comment Extension.
@@ -696,13 +702,13 @@ typedef struct gif_ctrl_ext_t
  *            they should be located at the beginning or at the end of the Data
  *            Stream to the extent possible.
  */
-typedef struct gif_comment_ext
+typedef struct 
 {
-   BYTE ext_introducer;
-   BYTE comment_label;
-   BYTE *comment_data;
-   BYTE block_terminator;
-}GifCommentExt;
+   char ext_introducer;
+   char comment_label;
+   char *comment_data;
+   char block_terminator;
+}gif_comment_ext_t;
 
 /**
  *25. Plain Text Extension.
@@ -835,21 +841,21 @@ typedef struct gif_comment_ext
  *      be around 8x8 or 8x16 (width x height); consider an image for unusual
  *      sized text.
  */
-typedef struct gif_plain_text_ext_t
+typedef struct 
 {
-   BYTE ext_introducer;
-   BYTE plain_text_lable;
+   char ext_introducer;
+   char plain_text_lable;
 
-   BYTE block_size;
-   WORD text_grid_left;
-   WORD text_grid_top;
-   WORD text_grid_width;
-   WORD text_grid_height;
-   BYTE char_cell_width;
-   BYTE char_cell_height;
-   BYTE fore_color_index;
-   BYTE back_color_index;
-}GifPlainTextExt;
+   char block_size;
+   uint32_t text_grid_left;
+   uint32_t text_grid_top;
+   uint32_t text_grid_width;
+   uint32_t text_grid_height;
+   char char_cell_width;
+   char char_cell_height;
+   char fore_color_index;
+   char back_color_index;
+}gif_plain_text_ext_t;
 
 /**
  *26. Application Extension.
@@ -932,15 +938,15 @@ typedef struct gif_plain_text_ext_t
  *
  *      e. Recommendation. None.
  */
-typedef struct gif_appl_ext
+typedef struct gif_appl_ext_t
 {
-   BYTE ext_introducer;
-   BYTE plain_text_lable;
+   char ext_introducer;
+   char plain_text_lable;
 
-   BYTE block_size;
-   BYTE identifier[8];
-   BYTE appl_auth_code[3];
-}GifApplExt;
+   char block_size;
+   char identifier[8];
+   char appl_auth_code[3];
+}gif_appl_ext_t;
 
 /**
  *27. Trailer.
@@ -962,44 +968,7 @@ typedef struct gif_appl_ext
  *
  *      e. recommendations. none.
  */
-typedef BYTE GifTrailer;
+typedef char gif_trailer_t;
 
-/*
- *The Grammar.
- *
- *<GIF Data Stream> ::=     Header <Logical Screen> <Data>* Trailer
- *
- *<Logical Screen> ::=      Logical Screen Descriptor [Global Color Table]
- *
- *<Data> ::=                <Graphic Block>  |
- *                          <Special-Purpose Block>
- *
- *<Graphic Block> ::=       [Graphic Control Extension] <Graphic-Rendering Block>
- *
- *<Graphic-Rendering Block> ::=  <Table-Based Image>  |
- *                               Plain Text Extension
- *
- *<Table-Based Image> ::=   Image Descriptor [Local Color Table] Image Data
- *
- *<Special-Purpose Block> ::=    Application Extension  |
- *                               Comment Extension
- */
-typedef struct gif_lgc_scr_t
-{
-   GifLgcScrDesc log_scr_desc;
-   GifGlobalColorTable *global_color_tbl;
-}GifLgcScr;
-
-typedef struct gif_data_t
-{
-
-}GifData;
-
-typedef struct gif_data_stream_t
-{
-   GifHeader;
-   GifLgcScr;
-   list<GifData> data;
-}GifDataStream;
-
+#endif /*GIF_H*/
 
