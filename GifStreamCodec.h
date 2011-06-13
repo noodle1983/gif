@@ -1,6 +1,7 @@
 #ifndef GIFSTREAMCODEC_H
 #define GIFSTREAMCODEC_H
 
+#include <stdlib.h>
 /**
  *The Grammar.
  *
@@ -21,5 +22,23 @@
  *<Special-Purpose Block> ::=    Application Extension  |
  *                               Comment Extension
  */
+
+class GifDataStream
+{
+public:
+   enum result
+   {
+      ERROR = -1,
+      DONE = 0,
+      PARTLY = 1
+   };
+   GifDataStream();
+   result decode(char* in, size_t len);
+
+private:
+   int state;
+   
+   
+};
 
 #endif /* GIFSTREAMCODEC_H */
