@@ -28,12 +28,12 @@ using namespace std;
  *
  */
 
-enum result
+enum Result
 {
   ERROR = -1,
   DONE = 0,
   PARTLY = 1,
-  NEXT = 2;
+  NEXT = 2
 };
 
 class GifHanderInterface
@@ -68,8 +68,8 @@ public:
    ~GifLogicalScreenDecoder()
    {};
    
-   result decode(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
-   result decodeLogicalScreenDesc(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
+   Result decode(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
+   Result decodeLogicalScreenDesc(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
    
 private:
    string &bufferM;
@@ -87,17 +87,19 @@ public:
       PARSING_HEADER = 0,
       PARSING_LOGICAL_SCREEN = 1,
       PARSING_DATA = 2,
-      PARSING_TRAILER = 3,   
+      PARSING_TRAILER = 3,  
+      PARSING_DONE
    };
    
    GifDataStreamDecoder(GifHanderInterface* theHandler)
     :handlerM(theHandler), 
-    stateM(PARSING_HEADER){};
+    stateM(PARSING_HEADER),
+    logicalScreenDecoderM(theHandler, bufferM){};
    ~GifDataStreamDecoder()
    {if (handlerM) delete handlerM;};
    
-   result decode(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
-   result decodeHeader(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
+   Result decode(const string &theInputBuffer, string &theOutputBuffer);
+   Result decodeHeader(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
 
 private:
    string bufferM;
@@ -105,7 +107,7 @@ private:
    int stateM;
    GifHanderInterface *handlerM; 
 
-   
+   GifLogicalScreenDecoder logicalScreenDecoderM;
 };
 
 

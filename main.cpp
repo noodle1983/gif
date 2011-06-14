@@ -16,7 +16,7 @@ int main()
 	
 	while (!in.eof()){
 		in.read(buf, 512);
-		gif_data.decode(buf, in.gcount(), output);
+		gif_data.decode(string(buf, in.gcount()), output);
       
 		//cout << "handle " << in.gcount() << "B" << endl;
       if (!output.empty()){
