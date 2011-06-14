@@ -2,6 +2,10 @@
 #define GIFSTREAMCODEC_H
 
 #include <stdlib.h>
+#include <string>
+using namespace std;
+
+#include "gif.h"
 /**
  *The Grammar.
  *
@@ -21,24 +25,99 @@
  *
  *<Special-Purpose Block> ::=    Application Extension  |
  *                               Comment Extension
+ *
  */
 
-class GifDataStream
+enum result
+{
+  ERROR = -1,
+  DONE = 0,
+  PARTLY = 1,
+  NEXT = 2;
+};
+
+class GifHanderInterface
 {
 public:
-   enum result
+   GifHanderInterface()
+        :nextHandlerM(NULL){};
+   GifHanderInterface(GifHanderInterface *theNextHandler)
+        :nextHandlerM(theNextHandler){};
+   virtual ~GifHanderInterface()
+        {if (nextHandlerM) delete nextHandlerM;};
+   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer)=0;
+    
+protected:
+   GifHanderInterface *nextHandlerM; 
+};
+
+class GifLogicalScreenDecoder
+{
+public:
+   enum
    {
-      ERROR = -1,
-      DONE = 0,
-      PARTLY = 1
+      PARSING_LOGICAL_SCREEN_DESC = 0,
+      PARSING_GLOBAL_COLOR_TABLE = 1,
+      PARSING_DONE
    };
-   GifDataStream();
-   result decode(char* in, size_t len);
+   
+   GifLogicalScreenDecoder(GifHanderInterface* theHandler, string &theBuffer)
+      :handlerM(theHandler), 
+      bufferM(theBuffer),
+      stateM(PARSING_LOGICAL_SCREEN_DESC){};
+   ~GifLogicalScreenDecoder()
+   {};
+   
+   result decode(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
+   result decodeLogicalScreenDesc(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
+   
+private:
+   string &bufferM;
+   
+   int stateM;
+   GifHanderInterface *handlerM; 
+};
+
+
+class GifDataStreamDecoder
+{
+public:
+   enum
+   {
+      PARSING_HEADER = 0,
+      PARSING_LOGICAL_SCREEN = 1,
+      PARSING_DATA = 2,
+      PARSING_TRAILER = 3,   
+   };
+   
+   GifDataStreamDecoder(GifHanderInterface* theHandler)
+    :handlerM(theHandler), 
+    stateM(PARSING_HEADER){};
+   ~GifDataStreamDecoder()
+   {if (handlerM) delete handlerM;};
+   
+   result decode(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
+   result decodeHeader(const char* theInputBuffer, size_t theInputLen, string &theOutputBuffer);
 
 private:
-   int state;
+   string bufferM;
    
+   int stateM;
+   GifHanderInterface *handlerM; 
+
    
+};
+
+
+
+class GifEncoder: public GifHanderInterface
+{
+public:
+   GifEncoder(){};
+   GifEncoder(GifHanderInterface *theNextHandler)
+      :GifHanderInterface(theNextHandler){};
+    
+   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer);   
 };
 
 #endif /* GIFSTREAMCODEC_H */

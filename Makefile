@@ -9,7 +9,7 @@ all:$(OBJS)
 	g++ -o test $(OBJS)
 
 %.o: %.cpp
-	g++ -c $< -o $@ $(CCFLAGS) 
+	g++ -g -c $< -o $@ $(CCFLAGS) 
 
 clean:
 	rm -rf *.o

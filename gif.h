@@ -486,8 +486,8 @@ typedef struct
 
 typedef struct 
 {
-   BTYE lzw_min_code_size;
-   BTYE *data;
+   char lzw_min_code_size;
+   char *data;
    size_t data_len;
 }gif_table_based_image_data_t;
 
