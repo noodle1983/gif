@@ -11,7 +11,7 @@ int main()
 	ifstream in;
 	in.open ("test.gif", ios::binary );
     
-	GifDataStreamDecoder gif_data(new GifEncoder);
+	GifDataStreamDecoder gif_data(new GifDumper(new GifEncoder));
    string output;
 	
 	while (!in.eof()){

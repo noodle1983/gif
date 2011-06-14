@@ -26,6 +26,13 @@ using namespace std;
  *<Special-Purpose Block> ::=    Application Extension  |
  *                               Comment Extension
  *
+ * Which is 
+ * *<GIF Data Stream> ::=     Header 
+ *       Logical Screen Descriptor [Global Color Table]
+ *       {[Graphic Control Extension] {{Image Descriptor [Local Color Table] Image Data}  |Plain Text Extension}
+ *          | Application Extension  
+ *          | Comment Extension}}* 
+ *       Trailer
  */
 
 enum Result
@@ -45,39 +52,29 @@ public:
         :nextHandlerM(theNextHandler){};
    virtual ~GifHanderInterface()
         {if (nextHandlerM) delete nextHandlerM;};
-   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer)=0;
-    
+   template<typename GifStruct>
+   int handle(GifStruct &theStruct, string &theOutputBuffer)
+   {
+      if (0 != exec(theStruct, theOutputBuffer))
+         return -1;
+      if (nextHandlerM)
+         nextHandlerM->handle(theStruct, theOutputBuffer);
+      return 0;
+   }
+
+   
 protected:
+   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)=0;
+   virtual int exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)=0;
+   virtual int exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_image_desc_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_appl_ext_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_comment_ext_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_trailer_t &theHeader, string &theOutputBuffer)=0;
    GifHanderInterface *nextHandlerM; 
 };
-
-class GifLogicalScreenDecoder
-{
-public:
-   enum
-   {
-      PARSING_LOGICAL_SCREEN_DESC = 0,
-      PARSING_GLOBAL_COLOR_TABLE = 1,
-      PARSING_DONE
-   };
-   
-   GifLogicalScreenDecoder(GifHanderInterface* theHandler, string &theBuffer)
-      :handlerM(theHandler), 
-      bufferM(theBuffer),
-      stateM(PARSING_LOGICAL_SCREEN_DESC){};
-   ~GifLogicalScreenDecoder()
-   {};
-   
-   Result decode(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
-   Result decodeLogicalScreenDesc(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
-   
-private:
-   string &bufferM;
-   
-   int stateM;
-   GifHanderInterface *handlerM; 
-};
-
 
 class GifDataStreamDecoder
 {
@@ -85,29 +82,39 @@ public:
    enum
    {
       PARSING_HEADER = 0,
-      PARSING_LOGICAL_SCREEN = 1,
-      PARSING_DATA = 2,
-      PARSING_TRAILER = 3,  
+      PARSING_LOGICAL_SCREEN_DESCRIPTOR,
+      PARSING_GLOBAL_COLOR_TABLE,
+      
+      /* Graphic Block */
+      PARSING_GRAPHIC_CONTROL_EXTENSION,
+      PARSING_IMAGE_DESCRIPTOR,
+      PARSING_LOCAL_COLOR_TABLE,
+      PARSING_IMAGE_DATA,
+      PARSING_PLAIN_TEXT_EXTENSION,
+
+      /* Special-Purpose Block */
+      PARSING_APPLICATION_EXTENSION,
+      PARSING_COMMENT_EXTENSION,
+      
+      PARSING_TRAILER,  
       PARSING_DONE
    };
    
    GifDataStreamDecoder(GifHanderInterface* theHandler)
     :handlerM(theHandler), 
-    stateM(PARSING_HEADER),
-    logicalScreenDecoderM(theHandler, bufferM){};
+    stateM(PARSING_HEADER){};
    ~GifDataStreamDecoder()
    {if (handlerM) delete handlerM;};
    
    Result decode(const string &theInputBuffer, string &theOutputBuffer);
-   Result decodeHeader(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
+   template<typename GifStruct>
+   Result decode(GifStruct &theGifStruct, const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
 
 private:
    string bufferM;
    
    int stateM;
    GifHanderInterface *handlerM; 
-
-   GifLogicalScreenDecoder logicalScreenDecoderM;
 };
 
 
@@ -118,8 +125,36 @@ public:
    GifEncoder(){};
    GifEncoder(GifHanderInterface *theNextHandler)
       :GifHanderInterface(theNextHandler){};
-    
-   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer);   
+   
+protected:   
+   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer);  
+   virtual int exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer);
+   virtual int exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer);
+   virtual int exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_image_desc_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_appl_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_comment_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_trailer_t &theHeader, string &theOutputBuffer);
+};
+
+class GifDumper: public GifHanderInterface
+{
+public:
+   GifDumper(){};
+   GifDumper(GifHanderInterface *theNextHandler)
+      :GifHanderInterface(theNextHandler){};
+   
+protected:      
+   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer);  
+   virtual int exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer);
+   virtual int exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer);
+   virtual int exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_image_desc_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_appl_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_comment_ext_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_trailer_t &theHeader, string &theOutputBuffer);
 };
 
 #endif /* GIFSTREAMCODEC_H */

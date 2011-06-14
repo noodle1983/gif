@@ -38,61 +38,143 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 		detectDeadloop = decodeIndex;
 	   switch(stateM)
 		{
-      case PARSING_HEADER:
-         result = decodeHeader(theInputBuffer, decodeIndex, theOutputBuffer);
-			if (DONE == result)
-				stateM = PARSING_LOGICAL_SCREEN;
-			break;
-	   case PARSING_LOGICAL_SCREEN:
-			result = logicalScreenDecoderM.decode(theInputBuffer, decodeIndex, theOutputBuffer);
-			if (DONE == result)
-				stateM = PARSING_DATA;
-			break;
+	      case PARSING_HEADER:
+			{
+			   gif_header_t gifStruct;
+	         result = decode(gifStruct, theInputBuffer, decodeIndex, theOutputBuffer);
+				if (DONE == result)
+					stateM = PARSING_LOGICAL_SCREEN_DESCRIPTOR;
+				break;
+	      }
+	      
+			case PARSING_LOGICAL_SCREEN_DESCRIPTOR:
+			{
+				gif_lgc_scr_desc_t gifStruct;
+				result = decode(gifStruct, theInputBuffer, decodeIndex, theOutputBuffer);
+				if (DONE == result)
+					stateM = PARSING_GLOBAL_COLOR_TABLE;
+				break;
+			}
 
-		}
+		}// switch
 	}
    return result;
 
 }
 
-
-
-Result GifDataStreamDecoder::decodeHeader(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer)
+template<typename GifStruct>
+Result GifDataStreamDecoder::decode(GifStruct &theGifStruct, const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer)
 {
-   gif_header_t header;
-	Result result = decodeStruct((char *) &header, sizeof(gif_header_t), bufferM, theInputBuffer, theDecodeIndex);
+	Result result = decodeStruct((char *) &theGifStruct, sizeof(GifStruct), bufferM, theInputBuffer, theDecodeIndex);
    if (DONE != result)
 		return result;
 	
-   if (0 != handlerM->exec(header, theOutputBuffer))
+   if (0 != handlerM->handle(theGifStruct, theOutputBuffer))
    {
       return ERROR;
    }      
    return DONE;
-
 }
-
-Result GifLogicalScreenDecoder::decode(const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer)
-{
-	Result result = DONE;
-   switch(stateM)
-	{
-      case PARSING_LOGICAL_SCREEN_DESC:
-			result = decodeLogicalScreenDesc(theInputBuffer, decodeIndex, theOutputBuffer);
-			if (DONE == result)
-				stateM = PARSING_GLOBAL_COLOR_TABLE;
-			break;
-         //return decodeLogicalScreenDesc(theInputBuffer, theInputLen, theOutputBuffer);
-         
-   }
-   return result;
-}
-
-
 
 int GifEncoder::exec(gif_header_t &theHeader, string &theOutputBuffer)  
 {
    theOutputBuffer.append((const char*)&theHeader, sizeof(gif_header_t));   
-   cout << "header:" <<string((const char*)&theHeader, sizeof(gif_header_t))<< endl; 
    return 0;
 }
+
+int GifEncoder::exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)
+{
+	theOutputBuffer.append((const char*)&theLgcScrDesc, sizeof(gif_lgc_scr_desc_t));
+   return 0;
+}
+
+int GifEncoder::exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifEncoder::exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifEncoder::exec(gif_image_desc_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifEncoder::exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifEncoder::exec(gif_appl_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifEncoder::exec(gif_comment_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifEncoder::exec(gif_trailer_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+
+
+int GifDumper::exec(gif_header_t &theHeader, string &theOutputBuffer)
+{
+	cout << "header:" << endl
+		<< "\t signature:" << string(theHeader.signature, sizeof (theHeader.signature)) << endl
+		<< "\t version:" << string(theHeader.version, sizeof (theHeader.signature)) << endl;
+   return 0;
+}
+  
+int GifDumper::exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)
+{
+	cout << "Logical Screen Descriptor:" << endl
+		<< "\t lgc_scr_width:" << theLgcScrDesc.lgc_scr_width << endl
+		<< "\t lgc_scr_height:" << theLgcScrDesc.lgc_scr_height << endl
+		<< "\t bg_color_index:" << (int)theLgcScrDesc.bg_color_index << endl
+		<< "\t pixel_aspect_ratio:" << (int)theLgcScrDesc.pixel_aspect_ratio << endl;
+   return 0;
+}
+
+int GifDumper::exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifDumper::exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifDumper::exec(gif_image_desc_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifDumper::exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifDumper::exec(gif_appl_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifDumper::exec(gif_comment_ext_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+
+int GifDumper::exec(gif_trailer_t &theHeader, string &theOutputBuffer)
+{
+   return 0;
+}
+

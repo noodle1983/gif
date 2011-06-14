@@ -266,7 +266,7 @@ typedef struct
 typedef struct 
 {
    gif_color_triplet_t color_table[256];
-}gif_color_tbl_t;
+}gif_glb_color_tbl_t;
 
 /*
  *20. Image Descriptor.
@@ -445,7 +445,10 @@ typedef struct
  *
  *     e. Recommendations. None.
  */
-
+typedef struct 
+{
+   gif_color_triplet_t color_table[256];
+}gif_lcl_color_tbl_t;
 
 /**
  *22. Table Based Image Data.
