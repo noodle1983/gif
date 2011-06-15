@@ -85,9 +85,91 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 
          }
 
+         case CHECK_DATA_INTRODUCOR:
+         {
+            assert(theInputBuffer.length() >= decodeIndex);
+            if (theInputBuffer.length() == decodeIndex){
+               result = PARTLY;
+               break;
+            }
+
+            /* Graphic Block */
+            const unsigned char introducer = theInputBuffer[decodeIndex];
+            if (0x21 == introducer)
+            {
+               stateM = CHECK_DATA_EXTENSION_LABEL;
+               bufferM.append((char *)&introducer, 1);
+               decodeIndex++;
+               result = DONE;
+               break;
+            }
+            if (0x2C == introducer)
+            {
+               stateM = PARSING_IMAGE_DESCRIPTOR;
+               result = DONE;
+               break;
+            }
+            if (0x3B == introducer)
+            {
+               stateM = PARSING_TRAILER;
+               result = DONE;
+               break;
+            }
+            return ERROR;
+
+         }
+
+         case CHECK_DATA_EXTENSION_LABEL:
+         {
+            assert(theInputBuffer.length() >= decodeIndex);
+            if (theInputBuffer.length() == decodeIndex){
+               result = PARTLY;
+               break;
+            }
+
+            /* Graphic Block */
+            const unsigned char label = theInputBuffer[decodeIndex];
+            if (0xF9 == label)
+            {
+               stateM = PARSING_GRAPHIC_CONTROL_EXTENSION;
+               result = DONE;
+               break;
+            }
+            if (0x01 == label)
+            {
+               stateM = PARSING_PLAIN_TEXT_EXTENSION;
+               result = DONE;
+               break;
+            }
+            if (0xFF == label)
+            {
+               stateM = PARSING_APPLICATION_EXTENSION;
+               result = DONE;
+               break;
+            }
+            if (0xFE == label)
+            {
+               stateM = PARSING_COMMENT_EXTENSION;
+               result = DONE;
+               break;
+            }
+
+            return ERROR;
+
+         }
+         
          /* Graphic Block */
          case PARSING_GRAPHIC_CONTROL_EXTENSION:
          {
+            gif_graphic_ctrl_ext_t gifStruct;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_graphic_ctrl_ext_t), bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+            
+            stateM = CHECK_DATA_INTRODUCOR;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+               return ERROR;
+				break;
 
          }
 

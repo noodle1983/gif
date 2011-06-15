@@ -29,7 +29,7 @@ using namespace std;
  * Which is 
  * *<GIF Data Stream> ::=     Header 
  *       Logical Screen Descriptor [Global Color Table]
- *       {[Graphic Control Extension] {{Image Descriptor [Local Color Table] Image Data}  |Plain Text Extension}
+ *          {[Graphic Control Extension] {{Image Descriptor [Local Color Table] Image Data}  |Plain Text Extension}
  *          | Application Extension  
  *          | Comment Extension}}* 
  *       Trailer
@@ -84,19 +84,22 @@ public:
       PARSING_HEADER = 0,
       PARSING_LOGICAL_SCREEN_DESCRIPTOR,
       PARSING_GLOBAL_COLOR_TABLE,
-      
-      /* Graphic Block */
-      PARSING_GRAPHIC_CONTROL_EXTENSION,
-      PARSING_IMAGE_DESCRIPTOR,
-      PARSING_LOCAL_COLOR_TABLE,
-      PARSING_IMAGE_DATA,
-      PARSING_PLAIN_TEXT_EXTENSION,
 
-      /* Special-Purpose Block */
-      PARSING_APPLICATION_EXTENSION,
-      PARSING_COMMENT_EXTENSION,
+      CHECK_DATA_INTRODUCOR,
+      CHECK_DATA_EXTENSION_LABEL,
       
-      PARSING_TRAILER,  
+         /* Graphic Block */
+         PARSING_GRAPHIC_CONTROL_EXTENSION,
+         PARSING_IMAGE_DESCRIPTOR,
+         PARSING_LOCAL_COLOR_TABLE,
+         PARSING_IMAGE_DATA,
+         PARSING_PLAIN_TEXT_EXTENSION,
+
+         /* Special-Purpose Block */
+         PARSING_APPLICATION_EXTENSION,
+         PARSING_COMMENT_EXTENSION,
+         
+         PARSING_TRAILER,  
       PARSING_DONE
    };
    
