@@ -64,15 +64,15 @@ public:
 
    
 protected:
-   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer)=0;
-   virtual int exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)=0;
-   virtual int exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)=0;
-   virtual int exec(gif_graphic_ctrl_ext_t &theGraphicCtrlExt, string &theOutputBuffer)=0;
-   virtual int exec(gif_image_desc_t &theHeader, string &theOutputBuffer)=0;
-   virtual int exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer)=0;
-   virtual int exec(gif_appl_ext_t &theHeader, string &theOutputBuffer)=0;
-   virtual int exec(gif_comment_ext_t &theHeader, string &theOutputBuffer)=0;
-   virtual int exec(gif_trailer_t &theHeader, string &theOutputBuffer)=0;
+   virtual int exec(gif_header_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)=0;
    GifHanderInterface *nextHandlerM; 
 };
 
@@ -100,7 +100,8 @@ public:
          PARSING_COMMENT_EXTENSION,
          
          PARSING_TRAILER,  
-      PARSING_DONE
+      PARSING_DONE,
+      PARSING_ERROR
    };
    
    GifDataStreamDecoder(GifHanderInterface* theHandler)
@@ -133,15 +134,15 @@ public:
       :GifHanderInterface(theNextHandler){};
    
 protected:   
-   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer);  
-   virtual int exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer);
-   virtual int exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer);
-   virtual int exec(gif_graphic_ctrl_ext_t &theGraphicCtrlExt, string &theOutputBuffer);
-   virtual int exec(gif_image_desc_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_appl_ext_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_comment_ext_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_trailer_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_header_t &theGifStruct, string &theOutputBuffer);  
+   virtual int exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
 };
 
 class GifDumper: public GifHanderInterface
@@ -152,15 +153,15 @@ public:
       :GifHanderInterface(theNextHandler){};
    
 protected:      
-   virtual int exec(gif_header_t &theHeader, string &theOutputBuffer);  
-   virtual int exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer);
-   virtual int exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer);
-   virtual int exec(gif_graphic_ctrl_ext_t &theGraphicCtrlExt, string &theOutputBuffer);
-   virtual int exec(gif_image_desc_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_plain_text_ext_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_appl_ext_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_comment_ext_t &theHeader, string &theOutputBuffer);
-   virtual int exec(gif_trailer_t &theHeader, string &theOutputBuffer);
+   virtual int exec(gif_header_t &theGifStruct, string &theOutputBuffer);  
+   virtual int exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
 };
 
 #endif /* GIFSTREAMCODEC_H */

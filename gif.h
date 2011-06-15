@@ -949,8 +949,8 @@ typedef struct gif_appl_ext_t
    unsigned char plain_text_lable;
 
    unsigned char block_size;
-   unsigned char identifier[8];
-   unsigned char appl_auth_code[3];
+   char identifier[8];
+   char appl_auth_code[3];
 }gif_appl_ext_t;
 
 /**
