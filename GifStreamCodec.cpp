@@ -30,12 +30,9 @@ Result
 GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuffer)
 {
 	int decodeIndex = 0;
-	int detectDeadloop = decodeIndex + 1;
 	Result result = DONE;
 	while(DONE == result && PARSING_DONE != stateM)
 	{
-		assert(detectDeadloop != decodeIndex);
-		detectDeadloop = decodeIndex;
 	   switch(stateM)
 		{
 	      case PARSING_HEADER:
@@ -63,7 +60,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
    				stateM = PARSING_GLOBAL_COLOR_TABLE;
                globalTableSize = 1 << (gifStruct.global_flag.global_color_tbl_sz + 1);
             }else{
-               stateM = PARSING_GRAPHIC_CONTROL_EXTENSION;
+               stateM = CHECK_DATA_INTRODUCOR;
             }
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
                return ERROR;
@@ -78,7 +75,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 				if (DONE != result)
                break;
             
-            stateM = PARSING_GRAPHIC_CONTROL_EXTENSION;
+            stateM = CHECK_DATA_INTRODUCOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
                return ERROR;
 				break;
@@ -95,6 +92,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 
             /* Graphic Block */
             const unsigned char introducer = theInputBuffer[decodeIndex];
+            cout<< "introducer:" << std::hex  << (int)introducer << endl;
             if (0x21 == introducer)
             {
                stateM = CHECK_DATA_EXTENSION_LABEL;
@@ -194,11 +192,13 @@ int GifEncoder::exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)
 int GifEncoder::exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)
 {
    theOutputBuffer.append((const char*)&theGlbColorTbl, sizeof(gif_color_triplet_t) * theGlbColorTbl.size);
+   cout << "append:" << sizeof(gif_color_triplet_t) * theGlbColorTbl.size << endl;
    return 0;
 }
 
-int GifEncoder::exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer)
+int GifEncoder::exec(gif_graphic_ctrl_ext_t &theGraphicCtrlExt, string &theOutputBuffer)
 {
+   theOutputBuffer.append((const char*)&theGraphicCtrlExt, sizeof(gif_graphic_ctrl_ext_t));
    return 0;
 }
 
@@ -258,8 +258,19 @@ int GifDumper::exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer
    return 0;
 }
 
-int GifDumper::exec(gif_graphic_ctrl_ext_t &theHeader, string &theOutputBuffer)
+int GifDumper::exec(gif_graphic_ctrl_ext_t &theGraphicCtrlExt, string &theOutputBuffer)
 {
+   cout << "Graphic Control Extension:" << endl
+      << "\t ext_introducer:" << (int)theGraphicCtrlExt.ext_introducer << endl
+      << "\t graphic_ctrl_label:" << (int)theGraphicCtrlExt.graphic_ctrl_label << endl
+      << "\t block_size:" << (int)theGraphicCtrlExt.block_size << endl
+         << "\t\t transparent_color_flag:" << (int)theGraphicCtrlExt.flag.transparent_color_flag << endl
+         << "\t\t user_input_flag:" << (int)theGraphicCtrlExt.flag.user_input_flag << endl
+         << "\t\t disposal_method:" << (int)theGraphicCtrlExt.flag.disposal_method << endl
+         << "\t\t reserved:" << (int)theGraphicCtrlExt.flag.reserved << endl
+      << "\t delay_time:" << theGraphicCtrlExt.delay_time << endl
+      << "\t transparent_color_index:" << (int)theGraphicCtrlExt.transparent_color_index << endl
+      << "\t block_terminator:" << (int)theGraphicCtrlExt.block_terminator << endl;
    return 0;
 }
 
