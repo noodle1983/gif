@@ -5,6 +5,89 @@
 using namespace std;
 
 #pragma   pack(1)
+
+/**
+ *15. Data Sub-blocks.
+ *
+ *      a. Description. Data Sub-blocks are units containing data. They do not
+ *      have a label, these blocks are processed in the context of control
+ *      blocks, wherever data blocks are specified in the format. The first byte
+ *      of the Data sub-block indicates the number of data bytes to follow. A
+ *      data sub-block may contain from 0 to 255 data bytes. The size of the
+ *      block does not account for the size byte itself, therefore, the empty
+ *      sub-block is one whose size field contains 0x00.
+ *
+ *      b. Required Version.  87a.
+ *
+ *      c. Syntax.
+ *
+ *      7 6 5 4 3 2 1 0        Field Name                    Type
+ *     +---------------+
+ *  0  |               |       Block Size                    Byte
+ *     +---------------+
+ *  1  |               |
+ *     +-             -+
+ *  2  |               |
+ *     +-             -+
+ *  3  |               |
+ *     +-             -+
+ *     |               |       Data Values                   Byte
+ *     +-             -+
+ * up  |               |
+ *     +-   . . . .   -+
+ * to  |               |
+ *     +-             -+
+ *     |               |
+ *     +-             -+
+ *255  |               |
+ *     +---------------+
+ *
+ *            i) Block Size - Number of bytes in the Data Sub-block; the size
+ *            must be within 0 and 255 bytes, inclusive.
+ *
+ *            ii) Data Values - Any 8-bit value. There must be exactly as many
+ *            Data Values as specified by the Block Size field.
+ *
+ *      d. Extensions and Scope. This type of block always occurs as part of a
+ *      larger unit. It does not have a scope of itself.
+ *
+ *      e. Recommendation. None.
+ *
+ *
+ *16. Block Terminator.
+ *
+ *      a. Description. This zero-length Data Sub-block is used to terminate a
+ *      sequence of Data Sub-blocks. It contains a single byte in the position of
+ *      the Block Size field and does not contain data.
+ *
+ *      b. Required Version.  87a.
+ *
+ *      c. Syntax.
+ *
+ *      7 6 5 4 3 2 1 0        Field Name                    Type
+ *     +---------------+
+ *  0  |               |       Block Size                    Byte
+ *     +---------------+
+ *
+ *            i) Block Size - Number of bytes in the Data Sub-block; this field
+ *            contains the fixed value 0x00.
+ *
+ *            ii) Data Values - This block does not contain any data.
+ *
+ *      d. Extensions and Scope. This block terminates the immediately preceding
+ *      sequence of Data Sub-blocks. This block cannot be modified by any
+ *      extension.
+ *
+ *      e. Recommendation. None.
+ */
+
+typedef struct 
+{
+   unsigned char block_size;
+   char data_value[256];
+   unsigned char block_terminator;
+}gif_data_sub_block_ter_t;
+
 /**
  * 17. Header.
  *
@@ -385,10 +468,10 @@ typedef struct
 typedef struct 
 {
    unsigned char image_sep;
-   uint32_t image_left;
-   uint32_t image_top;
-   uint32_t image_width;
-   uint32_t image_height;
+   uint16_t image_left;
+   uint16_t image_top;
+   uint16_t image_width;
+   uint16_t image_height;
    struct local_flag_t
    {
       unsigned char local_color_tbl_sz   : 3;
@@ -639,7 +722,7 @@ typedef struct
       unsigned char disposal_method          : 3;
       unsigned char reserved                 : 3;
    }  flag;
-   uint32_t delay_time;
+   uint16_t delay_time;
    unsigned char transparent_color_index;
    unsigned char block_terminator;
 }gif_graphic_ctrl_ext_t;
@@ -852,10 +935,10 @@ typedef struct
    unsigned char plain_text_lable;
 
    unsigned char block_size;
-   uint32_t text_grid_left;
-   uint32_t text_grid_top;
-   uint32_t text_grid_width;
-   uint32_t text_grid_height;
+   uint16_t text_grid_left;
+   uint16_t text_grid_top;
+   uint16_t text_grid_width;
+   uint16_t text_grid_height;
    unsigned char char_cell_width;
    unsigned char char_cell_height;
    unsigned char fore_color_index;
@@ -946,7 +1029,7 @@ typedef struct
 typedef struct gif_appl_ext_t
 {
    unsigned char ext_introducer;
-   unsigned char plain_text_lable;
+   unsigned char plain_text_label;
 
    unsigned char block_size;
    char identifier[8];

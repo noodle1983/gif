@@ -72,6 +72,7 @@ protected:
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer) = 0;
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)=0;
    GifHanderInterface *nextHandlerM; 
 };
@@ -85,30 +86,34 @@ public:
       PARSING_LOGICAL_SCREEN_DESCRIPTOR,
       PARSING_GLOBAL_COLOR_TABLE,
 
-      CHECK_DATA_INTRODUCOR,
+      CHECK_DATA_INTRODUCOR = 100,
       CHECK_DATA_EXTENSION_LABEL,
       
          /* Graphic Block */
-         PARSING_GRAPHIC_CONTROL_EXTENSION,
+         PARSING_GRAPHIC_CONTROL_EXTENSION = 200,
          PARSING_IMAGE_DESCRIPTOR,
          PARSING_LOCAL_COLOR_TABLE,
          PARSING_IMAGE_DATA,
          PARSING_PLAIN_TEXT_EXTENSION,
 
          /* Special-Purpose Block */
-         PARSING_APPLICATION_EXTENSION,
+         PARSING_APPLICATION_EXTENSION = 300,
          PARSING_COMMENT_EXTENSION,
          
-         PARSING_TRAILER,  
-      PARSING_DONE,
+         PARSING_TRAILER = 400,  
+
+         PARSING_SUB_BLOCK_TER_SIZE = 500,
+         PARSING_SUB_BLOCK_TER,
+         
+      PARSING_DONE = 600,
       PARSING_ERROR
    };
    
    GifDataStreamDecoder(GifHanderInterface* theHandler)
     :handlerM(theHandler), 
     stateM(PARSING_HEADER),
-    globalTableSize(0),
-    localTableSize(0){};
+    globalTableSizeM(0),
+    localTableSizeM(0){};
    ~GifDataStreamDecoder()
    {if (handlerM) delete handlerM;};
    
@@ -120,8 +125,8 @@ private:
    int stateM;
    GifHanderInterface *handlerM; 
 
-   size_t globalTableSize;
-   size_t localTableSize;
+   size_t globalTableSizeM;
+   size_t localTableSizeM;
 };
 
 
@@ -142,6 +147,7 @@ protected:
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
 };
 
@@ -161,6 +167,7 @@ protected:
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
 };
 

@@ -33,6 +33,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 	Result result = DONE;
 	while(DONE == result && PARSING_DONE != stateM)
 	{
+		cout << "state:" << stateM << endl;
 	   switch(stateM)
 		{
 	      case PARSING_HEADER:
@@ -61,7 +62,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             if (gifStruct.global_flag.global_color_table_flag)
             {
    				stateM = PARSING_GLOBAL_COLOR_TABLE;
-               globalTableSize = 1 << (gifStruct.global_flag.global_color_tbl_sz + 1);
+               globalTableSizeM = 1 << (gifStruct.global_flag.global_color_tbl_sz + 1);
             }else{
                stateM = CHECK_DATA_INTRODUCOR;
             }
@@ -76,8 +77,8 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          case PARSING_GLOBAL_COLOR_TABLE:
          {
             gif_glb_color_tbl_t gifStruct;
-            gifStruct.size = globalTableSize;
-				result = decodeStruct((char *) &gifStruct, sizeof(gif_color_triplet_t) * globalTableSize, bufferM, theInputBuffer, decodeIndex);
+            gifStruct.size = globalTableSizeM;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_color_triplet_t) * globalTableSizeM, bufferM, theInputBuffer, decodeIndex);
 				if (DONE != result)
                break;
             
@@ -183,12 +184,10 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 				break;
 
          }
-
-			/* Special-Purpose Block */
-			case PARSING_APPLICATION_EXTENSION:
+			case PARSING_IMAGE_DESCRIPTOR:
 			{
-				gif_appl_ext_t gifStruct;
-				result = decodeStruct((char *) &gifStruct, sizeof(gif_appl_ext_t), bufferM, theInputBuffer, decodeIndex);
+				gif_image_desc_t gifStruct;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_image_desc_t), bufferM, theInputBuffer, decodeIndex);
 				if (DONE != result)
                break;
             
@@ -199,6 +198,67 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
                return ERROR;
             }
                
+				break;
+				break;
+			}
+
+			/* Special-Purpose Block */
+			case PARSING_APPLICATION_EXTENSION:
+			{
+				gif_appl_ext_t gifStruct;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_appl_ext_t), bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+            
+            stateM = PARSING_SUB_BLOCK_TER_SIZE;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+            {
+            	stateM = PARSING_ERROR;
+               return ERROR;
+            }
+               
+				break;
+			}
+
+			case PARSING_SUB_BLOCK_TER_SIZE:
+			{
+				gif_data_sub_block_ter_t gifStruct;
+				result = decodeStruct((char *) &gifStruct, 2, bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+
+				if (0 != gifStruct.block_size)
+				{
+					bufferM.append((char*)&gifStruct, 2);
+					stateM = PARSING_SUB_BLOCK_TER;
+					break;
+				}
+            
+            stateM = CHECK_DATA_INTRODUCOR;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+            {
+            	stateM = PARSING_ERROR;
+               return ERROR;
+            }
+               
+				break;
+
+			}
+			case PARSING_SUB_BLOCK_TER:
+			{
+				assert (bufferM.length() > 1);
+				gif_data_sub_block_ter_t gifStruct;
+				unsigned char size = (unsigned char)bufferM[0];
+				result = decodeStruct((char *) &gifStruct, size + 2, bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+            
+            stateM = CHECK_DATA_INTRODUCOR;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+            {
+            	stateM = PARSING_ERROR;
+               return ERROR;
+            }
 				break;
 			}
 
@@ -267,6 +327,12 @@ int GifEncoder::exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)
    return 0;
 }
 
+int GifEncoder::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)
+{
+	theOutputBuffer.append((const char*)&theGifStruct, theGifStruct.block_size + 2);
+   return 0;
+}
+
 int GifEncoder::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 {
 	theOutputBuffer.append((const char*)&theGifStruct, sizeof(gif_trailer_t));
@@ -274,9 +340,9 @@ int GifEncoder::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 }
 
 
-
 int GifDumper::exec(gif_header_t &theGifStruct, string &theOutputBuffer)
 {
+	cout << "output index:" << theOutputBuffer.length() << endl;
 	cout << "header:" << endl
 		<< "\t signature:" << string(theGifStruct.signature, sizeof (theGifStruct.signature)) << endl
 		<< "\t version:" << string(theGifStruct.version, sizeof (theGifStruct.signature)) << endl;
@@ -285,6 +351,7 @@ int GifDumper::exec(gif_header_t &theGifStruct, string &theOutputBuffer)
   
 int GifDumper::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 {
+	cout << "output index:" << theOutputBuffer.length() << endl;
    int flag = (int) theGifStruct.global_flag.global_color_table_flag;
    int size = 1 << (theGifStruct.global_flag.global_color_tbl_sz + 1);
 	cout << "Logical Screen Descriptor:" << endl
@@ -299,6 +366,7 @@ int GifDumper::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer)
 {
+	cout << "output index:" << theOutputBuffer.length() << endl;
    cout << "Logical Screen Descriptor:" << endl
       << "\t ..." << endl;
    return 0;
@@ -306,6 +374,7 @@ int GifDumper::exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer)
 {
+	cout << "output index:" << theOutputBuffer.length() << endl;
    cout << "Graphic Control Extension:" << endl
       << "\t ext_introducer:" << (int)theGifStruct.ext_introducer << endl
       << "\t graphic_ctrl_label:" << (int)theGifStruct.graphic_ctrl_label << endl
@@ -322,6 +391,18 @@ int GifDumper::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffe
 
 int GifDumper::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 {
+	cout << "output index:" << theOutputBuffer.length() << endl;
+	cout << "Image Descriptor" << endl
+		<< "\t image_sep:" << (int)theGifStruct.image_sep << endl
+		<< "\t image_left:" << theGifStruct.image_left << endl
+		<< "\t image_top:" << theGifStruct.image_top << endl
+		<< "\t image_width:" << theGifStruct.image_width << endl
+		<< "\t image_height:" << theGifStruct.image_height << endl
+		<< "\t\t local_color_tbl_sz:" << (int)theGifStruct.local_flag.local_color_tbl_sz << endl    
+		<< "\t\t reserved:" << (int)theGifStruct.local_flag.reserved << endl                        
+		<< "\t\t sort_flag:" << (int)theGifStruct.local_flag.sort_flag << endl                      
+		<< "\t\t interlace_flag:" << (int)theGifStruct.local_flag.interlace_flag << endl            
+		<< "\t\t local_color_tbl_flag:" << (int)theGifStruct.local_flag.local_color_tbl_flag << endl;
    return 0;
 }
 
@@ -332,9 +413,10 @@ int GifDumper::exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)
 {
+	cout << "output index:" << theOutputBuffer.length() << endl;
 	cout << "Application Extension:" << endl
 		<< "\t ext_introducer:" << (int)theGifStruct.ext_introducer << endl
-		<< "\t plain_text_lable:" << (int)theGifStruct.plain_text_lable << endl
+		<< "\t plain_text_label:" << (int)theGifStruct.plain_text_label << endl
 		<< "\t block_size:" << (int)theGifStruct.block_size << endl
 		<< "\t identifier:" << string(theGifStruct.identifier, 8) << endl
 		<< "\t appl_auth_code:" << string(theGifStruct.appl_auth_code, 3) << endl;
@@ -343,6 +425,13 @@ int GifDumper::exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)
 {
+   return 0;
+}
+
+int GifDumper::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)
+{
+	cout << "output index:" << theOutputBuffer.length() << endl;
+	cout << "\t data_sub_block and Terminator bytes:" << (theGifStruct.block_size + 2) << endl;
    return 0;
 }
 

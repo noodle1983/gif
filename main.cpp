@@ -13,16 +13,18 @@ int main()
     
 	GifDataStreamDecoder gif_data(new GifDumper(new GifEncoder));
    string output;
-	
+
+	int totalSize = 0;
 	while (!in.eof()){
 		in.read(buf, 512);
-		gif_data.decode(string(buf, in.gcount()), output);
+		Result result = gif_data.decode(string(buf, in.gcount()), output);
       
 		//cout << "handle " << in.gcount() << "B" << endl;
       if (!output.empty()){
-         cout << "output size:" << output.length() << endl;
-         output.clear();
+         cout << "total output size:" << output.length() << endl;
       }
+		if (result != PARTLY)
+			return 0;
 	}
 
 	return 0;
