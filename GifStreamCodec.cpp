@@ -191,14 +191,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 				if (DONE != result)
                break;
             
-            stateM = CHECK_DATA_INTRODUCOR;
+            stateM = gifStruct.local_flag.local_color_tbl_flag ? 
+					PARSING_LOCAL_COLOR_TABLE : PARSING_IMAGE_DATA;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
                return ERROR;
             }
                
-				break;
 				break;
 			}
 
