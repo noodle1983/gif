@@ -41,39 +41,60 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 	      case PARSING_HEADER:
 			{
 			   gif_header_t gifStruct;
-	         result = decode(gifStruct, theInputBuffer, decodeIndex, theOutputBuffer);
-				if (DONE == result)
-					stateM = PARSING_LOGICAL_SCREEN_DESCRIPTOR;
+	         result = decodeStruct((char *) &gifStruct, sizeof(gif_header_t), bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+            
+				stateM = PARSING_LOGICAL_SCREEN_DESCRIPTOR;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+               return ERROR;
 				break;
 	      }
 	      
 			case PARSING_LOGICAL_SCREEN_DESCRIPTOR:
 			{
 				gif_lgc_scr_desc_t gifStruct;
-				result = decode(gifStruct, theInputBuffer, decodeIndex, theOutputBuffer);
-				if (DONE == result)
-					stateM = PARSING_GLOBAL_COLOR_TABLE;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_lgc_scr_desc_t), bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+
+            if (gifStruct.global_flag.global_color_table_flag)
+            {
+   				stateM = PARSING_GLOBAL_COLOR_TABLE;
+               globalTableSize = 1 << (gifStruct.global_flag.global_color_tbl_sz + 1);
+            }else{
+               stateM = PARSING_GRAPHIC_CONTROL_EXTENSION;
+            }
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+               return ERROR;
 				break;
 			}
+
+         case PARSING_GLOBAL_COLOR_TABLE:
+         {
+            gif_glb_color_tbl_t gifStruct;
+            gifStruct.size = globalTableSize;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_color_triplet_t) * globalTableSize, bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+            
+            stateM = PARSING_GRAPHIC_CONTROL_EXTENSION;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+               return ERROR;
+				break;
+
+         }
+
+         /* Graphic Block */
+         case PARSING_GRAPHIC_CONTROL_EXTENSION:
+         {
+
+         }
 
 		}// switch
 	}
    return result;
 
-}
-
-template<typename GifStruct>
-Result GifDataStreamDecoder::decode(GifStruct &theGifStruct, const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer)
-{
-	Result result = decodeStruct((char *) &theGifStruct, sizeof(GifStruct), bufferM, theInputBuffer, theDecodeIndex);
-   if (DONE != result)
-		return result;
-	
-   if (0 != handlerM->handle(theGifStruct, theOutputBuffer))
-   {
-      return ERROR;
-   }      
-   return DONE;
 }
 
 int GifEncoder::exec(gif_header_t &theHeader, string &theOutputBuffer)  
@@ -90,6 +111,7 @@ int GifEncoder::exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)
 
 int GifEncoder::exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)
 {
+   theOutputBuffer.append((const char*)&theGlbColorTbl, sizeof(gif_color_triplet_t) * theGlbColorTbl.size);
    return 0;
 }
 
@@ -135,9 +157,13 @@ int GifDumper::exec(gif_header_t &theHeader, string &theOutputBuffer)
   
 int GifDumper::exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)
 {
+   int flag = (int) theLgcScrDesc.global_flag.global_color_table_flag;
+   int size = 1 << (theLgcScrDesc.global_flag.global_color_tbl_sz + 1);
 	cout << "Logical Screen Descriptor:" << endl
 		<< "\t lgc_scr_width:" << theLgcScrDesc.lgc_scr_width << endl
 		<< "\t lgc_scr_height:" << theLgcScrDesc.lgc_scr_height << endl
+		<< "\t global_color_table_flag:" << flag << endl
+		<< "\t global_color_table_size:" << size << endl
 		<< "\t bg_color_index:" << (int)theLgcScrDesc.bg_color_index << endl
 		<< "\t pixel_aspect_ratio:" << (int)theLgcScrDesc.pixel_aspect_ratio << endl;
    return 0;
@@ -145,6 +171,8 @@ int GifDumper::exec(gif_lgc_scr_desc_t &theLgcScrDesc, string &theOutputBuffer)
 
 int GifDumper::exec(gif_glb_color_tbl_t &theGlbColorTbl, string &theOutputBuffer)
 {
+   cout << "Logical Screen Descriptor:" << endl
+      << "\t ..." << endl;
    return 0;
 }
 

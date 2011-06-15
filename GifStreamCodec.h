@@ -102,19 +102,22 @@ public:
    
    GifDataStreamDecoder(GifHanderInterface* theHandler)
     :handlerM(theHandler), 
-    stateM(PARSING_HEADER){};
+    stateM(PARSING_HEADER),
+    globalTableSize(0),
+    localTableSize(0){};
    ~GifDataStreamDecoder()
    {if (handlerM) delete handlerM;};
    
    Result decode(const string &theInputBuffer, string &theOutputBuffer);
-   template<typename GifStruct>
-   Result decode(GifStruct &theGifStruct, const string &theInputBuffer, int& theDecodeIndex, string &theOutputBuffer);
 
 private:
    string bufferM;
    
    int stateM;
    GifHanderInterface *handlerM; 
+
+   size_t globalTableSize;
+   size_t localTableSize;
 };
 
 

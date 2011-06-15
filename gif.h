@@ -4,6 +4,7 @@
 #include <stdint.h>
 using namespace std;
 
+#pragma   pack(1)
 /**
  * 17. Header.
  *
@@ -201,13 +202,13 @@ typedef struct
    uint16_t lgc_scr_height;
    struct global_flag_t
    {
-      char global_color_tbl_sz     : 3;
-      char sort_flag               : 1;
-      char color_resolution        : 3;
-      char global_color_table_flag : 1;
+      unsigned char global_color_tbl_sz     : 3;
+      unsigned char sort_flag               : 1;
+      unsigned char color_resolution        : 3;
+      unsigned char global_color_table_flag : 1;
    }  global_flag;
-   char bg_color_index;
-   char pixel_aspect_ratio;
+   unsigned char bg_color_index;
+   unsigned char pixel_aspect_ratio;
 }gif_lgc_scr_desc_t;
 
 /**
@@ -258,14 +259,15 @@ typedef struct
  */
 typedef struct 
 {
-   char red;
-   char green;
-   char blue;
+   unsigned char red;
+   unsigned char green;
+   unsigned char blue;
 }gif_color_triplet_t;
 
 typedef struct 
 {
    gif_color_triplet_t color_table[256];
+   size_t size;
 }gif_glb_color_tbl_t;
 
 /*
@@ -382,18 +384,18 @@ typedef struct
 
 typedef struct 
 {
-   char image_sep;
+   unsigned char image_sep;
    uint32_t image_left;
    uint32_t image_top;
    uint32_t image_width;
    uint32_t image_height;
    struct local_flag_t
    {
-      char local_color_tbl_sz   : 3;
-      char reserved             : 2;
-      char sort_flag            : 1;
-      char interlace_flag       : 1;
-      char local_color_tbl_flag : 1;
+      unsigned char local_color_tbl_sz   : 3;
+      unsigned char reserved             : 2;
+      unsigned char sort_flag            : 1;
+      unsigned char interlace_flag       : 1;
+      unsigned char local_color_tbl_flag : 1;
    }  local_flag;
 }gif_image_desc_t;
 
@@ -489,8 +491,8 @@ typedef struct
 
 typedef struct 
 {
-   char lzw_min_code_size;
-   char *data;
+   unsigned char lzw_min_code_size;
+   unsigned char *data;
    size_t data_len;
 }gif_table_based_image_data_t;
 
@@ -626,20 +628,20 @@ typedef struct
  */
 typedef struct 
 {
-   char ext_introducer;
-   char graphic_ctrl_label;
+   unsigned char ext_introducer;
+   unsigned char graphic_ctrl_label;
 
-   char block_size;
+   unsigned char block_size;
    struct flag_t
    {
-      char transparent_color_flag   : 1;
-      char user_input_flag          : 1;
-      char disposal_method          : 3;
-      char reserved                 : 3;
+      unsigned char transparent_color_flag   : 1;
+      unsigned char user_input_flag          : 1;
+      unsigned char disposal_method          : 3;
+      unsigned char reserved                 : 3;
    }  flag;
    uint32_t delay_time;
-   char transparent_color_index;
-   char block_terminator;
+   unsigned char transparent_color_index;
+   unsigned char block_terminator;
 }gif_graphic_ctrl_ext_t;
 
 /**
@@ -707,10 +709,10 @@ typedef struct
  */
 typedef struct 
 {
-   char ext_introducer;
-   char comment_label;
-   char *comment_data;
-   char block_terminator;
+   unsigned char ext_introducer;
+   unsigned char comment_label;
+   unsigned char *comment_data;
+   unsigned char block_terminator;
 }gif_comment_ext_t;
 
 /**
@@ -846,18 +848,18 @@ typedef struct
  */
 typedef struct 
 {
-   char ext_introducer;
-   char plain_text_lable;
+   unsigned char ext_introducer;
+   unsigned char plain_text_lable;
 
-   char block_size;
+   unsigned char block_size;
    uint32_t text_grid_left;
    uint32_t text_grid_top;
    uint32_t text_grid_width;
    uint32_t text_grid_height;
-   char char_cell_width;
-   char char_cell_height;
-   char fore_color_index;
-   char back_color_index;
+   unsigned char char_cell_width;
+   unsigned char char_cell_height;
+   unsigned char fore_color_index;
+   unsigned char back_color_index;
 }gif_plain_text_ext_t;
 
 /**
@@ -943,12 +945,12 @@ typedef struct
  */
 typedef struct gif_appl_ext_t
 {
-   char ext_introducer;
-   char plain_text_lable;
+   unsigned char ext_introducer;
+   unsigned char plain_text_lable;
 
-   char block_size;
-   char identifier[8];
-   char appl_auth_code[3];
+   unsigned char block_size;
+   unsigned char identifier[8];
+   unsigned char appl_auth_code[3];
 }gif_appl_ext_t;
 
 /**
@@ -971,7 +973,9 @@ typedef struct gif_appl_ext_t
  *
  *      e. recommendations. none.
  */
-typedef char gif_trailer_t;
+typedef unsigned char gif_trailer_t;
 
+
+#pragma   pack()
 #endif /*GIF_H*/
 

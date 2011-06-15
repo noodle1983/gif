@@ -20,7 +20,7 @@ int main()
       
 		//cout << "handle " << in.gcount() << "B" << endl;
       if (!output.empty()){
-         cout << "[output:" << output << "]" << endl;
+         cout << "output size:" << output.length() << endl;
          output.clear();
       }
 	}
