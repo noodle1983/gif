@@ -533,6 +533,7 @@ typedef struct
 typedef struct 
 {
    gif_color_triplet_t color_table[256];
+   size_t size;
 }gif_lcl_color_tbl_t;
 
 /**
@@ -571,6 +572,22 @@ typedef struct
  *
  *     e. Recommendations. None.
  */
+
+typedef struct
+{
+   unsigned char lzw_code_size;
+}gif_lzw_code_size_t;
+
+typedef struct 
+{
+   unsigned char block_size;
+   char data_value[256];
+}gif_image_data_block_t;
+
+typedef struct
+{
+   unsigned char terminator;
+}gif_image_data_ter_t;
 
 typedef struct 
 {
@@ -1026,7 +1043,7 @@ typedef struct
  *
  *      e. Recommendation. None.
  */
-typedef struct gif_appl_ext_t
+typedef struct 
 {
    unsigned char ext_introducer;
    unsigned char plain_text_label;

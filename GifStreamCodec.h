@@ -69,6 +69,10 @@ protected:
    virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)=0;
@@ -86,26 +90,31 @@ public:
       PARSING_LOGICAL_SCREEN_DESCRIPTOR,
       PARSING_GLOBAL_COLOR_TABLE,
 
-      CHECK_DATA_INTRODUCOR = 100,
+      CHECK_DATA_INTRODUCOR = 1000,
       CHECK_DATA_EXTENSION_LABEL,
       
-         /* Graphic Block */
-         PARSING_GRAPHIC_CONTROL_EXTENSION = 200,
-         PARSING_IMAGE_DESCRIPTOR,
-         PARSING_LOCAL_COLOR_TABLE,
-         PARSING_IMAGE_DATA,
-         PARSING_PLAIN_TEXT_EXTENSION,
+      /* Graphic Block */
+      PARSING_GRAPHIC_CONTROL_EXTENSION = 2000,
 
-         /* Special-Purpose Block */
-         PARSING_APPLICATION_EXTENSION = 300,
-         PARSING_COMMENT_EXTENSION,
-         
-         PARSING_TRAILER = 400,  
+      PARSING_IMAGE_DESCRIPTOR = 2100,
+      PARSING_LOCAL_COLOR_TABLE,
+      
+      PARSING_IMAGE_DATA_LZW_CODE_SIZE,
+      PARSING_IMAGE_DATA_BLOCK,
+      PARSING_IMAGE_DATA_TERMINATOR,
+      
+      PARSING_PLAIN_TEXT_EXTENSION = 2200,
 
-         PARSING_SUB_BLOCK_TER_SIZE = 500,
-         PARSING_SUB_BLOCK_TER,
+      /* Special-Purpose Block */
+      PARSING_APPLICATION_EXTENSION = 3000,
+      PARSING_COMMENT_EXTENSION,
          
-      PARSING_DONE = 600,
+      PARSING_TRAILER = 4000,  
+
+      PARSING_SUB_BLOCK_TER_SIZE = 5000,
+      PARSING_SUB_BLOCK_TER,
+         
+      PARSING_DONE = 6000,
       PARSING_ERROR
    };
    
@@ -144,6 +153,10 @@ protected:
    virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
@@ -164,6 +177,10 @@ protected:
    virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
