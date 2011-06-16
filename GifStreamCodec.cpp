@@ -318,6 +318,23 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 				break;
 			}
 
+         case PARSING_TRAILER:
+         {
+            gif_trailer_t gifStruct;
+				result = decodeStruct((char *) &gifStruct, sizeof(gif_trailer_t), bufferM, theInputBuffer, decodeIndex);
+				if (DONE != result)
+               break;
+            
+            stateM = PARSING_DONE;
+            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+            {
+            	stateM = PARSING_ERROR;
+               return ERROR;
+            }
+               
+				break;
+         }
+
 			case PARSING_ERROR:
 			default:
 			{
@@ -544,6 +561,8 @@ int GifDumper::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuf
 
 int GifDumper::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 {
+   cout << "output index:" << theOutputBuffer.length() << endl;
+	cout << "Trailer" << endl;
    return 0;
 }
 

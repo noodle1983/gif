@@ -1073,7 +1073,10 @@ typedef struct
  *
  *      e. recommendations. none.
  */
-typedef unsigned char gif_trailer_t;
+typedef struct
+{
+   unsigned char trailer;
+}gif_trailer_t;
 
 
 #pragma   pack()
