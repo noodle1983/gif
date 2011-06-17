@@ -23,9 +23,15 @@ int main()
       if (!output.empty()){
          cout << "total output size:" << output.length() << endl;
       }
-		if (result != PARTLY)
+		if (result == ERROR)
 			return 0;
 	}
+   in.close();
+   
+   ofstream out;
+   out.open ("out.gif", ofstream::binary );
+   out.write(output.c_str(), output.length());
+   out.close();
 
 	return 0;
 }
