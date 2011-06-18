@@ -4,6 +4,8 @@
 using namespace std;
 
 #include "GifStreamCodec.h"
+using namespace IMAGELIB;
+using namespace IMAGELIB::GIFLIB;
 
 int main()
 {
@@ -20,9 +22,9 @@ int main()
 		Result result = gif_data.decode(string(buf, in.gcount()), output);
       
 		//cout << "handle " << in.gcount() << "B" << endl;
-      if (!output.empty()){
-         cout << "total output size:" << output.length() << endl;
-      }
+      //if (!output.empty()){
+      //   cout << "total output size:" << output.length() << endl;
+      //}
 		if (result == ERROR)
 			return 0;
 	}

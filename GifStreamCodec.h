@@ -6,6 +6,10 @@
 using namespace std;
 
 #include "gif.h"
+
+
+namespace IMAGELIB
+{
 /**
  *The Grammar.
  *
@@ -43,6 +47,9 @@ enum Result
   NEXT = 2
 };
 
+namespace GIFLIB
+{
+   
 class GifHanderInterface
 {
 public:
@@ -187,5 +194,7 @@ protected:
    virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
 };
+};//namespace GIFLIB
+};//namespace IMAGELIB
 
 #endif /* GIFSTREAMCODEC_H */

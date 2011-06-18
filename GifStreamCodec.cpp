@@ -1,8 +1,9 @@
 #include "GifStreamCodec.h"
 #include <iostream>
 using namespace std;
+using namespace IMAGELIB::GIFLIB;
 
-Result decodeStruct(
+IMAGELIB::Result decodeStruct(
 	char* theImageStruct, const int theStructLen, 
 	string &theBuffer, const string &theInputBuffer,
 	int& theDecodeIndex)
@@ -14,40 +15,41 @@ Result decodeStruct(
       theBuffer.append(theInputBuffer.c_str() + theDecodeIndex, inputLen);
       bufferLen += inputLen; 
 		theDecodeIndex += inputLen;
-      return PARTLY;
+      return IMAGELIB::PARTLY;
    }else
    {
       memcpy(theImageStruct, theBuffer.c_str(), bufferLen);
 	   memcpy(theImageStruct + bufferLen, theInputBuffer.c_str() + theDecodeIndex, theStructLen - bufferLen);
 	   theBuffer.clear();
 		theDecodeIndex += theStructLen - bufferLen;
-		return DONE;
+		return IMAGELIB::DONE;
    }
-   return ERROR;
+   return IMAGELIB::ERROR;
 }
 
-Result 
+IMAGELIB::Result 
 GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuffer)
 {
 	int decodeIndex = 0;
-	Result result = DONE;
-	while(DONE == result && PARSING_DONE != stateM)
+	IMAGELIB::Result result = IMAGELIB::DONE;
+	while(IMAGELIB::DONE == result && PARSING_DONE != stateM)
 	{
-		cout << "state:" << stateM << endl;
+		//if (stateM != PARSING_IMAGE_DATA_BLOCK && stateM != PARSING_IMAGE_DATA_TERMINATOR)
+		//	cout << "state:" << stateM << endl;
 	   switch(stateM)
 		{
 	      case PARSING_HEADER:
 			{
 			   gif_header_t gifStruct;
 	         result = decodeStruct((char *) &gifStruct, sizeof(gif_header_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
 				stateM = PARSING_LOGICAL_SCREEN_DESCRIPTOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
 					stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
 				break;
 	      }
@@ -56,7 +58,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 			{
 				gif_lgc_scr_desc_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_lgc_scr_desc_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
 
             if (gifStruct.global_flag.global_color_table_flag)
@@ -69,7 +71,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
 					stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
 				break;
 			}
@@ -79,14 +81,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             gif_glb_color_tbl_t gifStruct;
             gifStruct.size = globalTableSizeM;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_color_triplet_t) * globalTableSizeM, bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = CHECK_DATA_INTRODUCOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
 					stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
 				break;
 
@@ -96,7 +98,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          {
             assert(theInputBuffer.length() >= decodeIndex);
             if (theInputBuffer.length() == decodeIndex){
-               result = PARTLY;
+               result = IMAGELIB::PARTLY;
                break;
             }
 
@@ -107,23 +109,23 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
                stateM = CHECK_DATA_EXTENSION_LABEL;
                bufferM.append((char *)&introducer, 1);
                decodeIndex++;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
             if (0x2C == introducer)
             {
                stateM = PARSING_IMAGE_DESCRIPTOR;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
             if (0x3B == introducer)
             {
                stateM = PARSING_TRAILER;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
             stateM = PARSING_ERROR;
-            return ERROR;
+            return IMAGELIB::ERROR;
 
          }
 
@@ -131,7 +133,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          {
             assert(theInputBuffer.length() >= decodeIndex);
             if (theInputBuffer.length() == decodeIndex){
-               result = PARTLY;
+               result = IMAGELIB::PARTLY;
                break;
             }
 
@@ -140,29 +142,29 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             if (0xF9 == label)
             {
                stateM = PARSING_GRAPHIC_CONTROL_EXTENSION;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
             if (0x01 == label)
             {
                stateM = PARSING_PLAIN_TEXT_EXTENSION;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
             if (0xFF == label)
             {
                stateM = PARSING_APPLICATION_EXTENSION;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
             if (0xFE == label)
             {
                stateM = PARSING_COMMENT_EXTENSION;
-               result = DONE;
+               result = IMAGELIB::DONE;
                break;
             }
 				stateM = PARSING_ERROR;
-            return ERROR;
+            return IMAGELIB::ERROR;
 
          }
          
@@ -171,14 +173,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          {
             gif_graphic_ctrl_ext_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_graphic_ctrl_ext_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = CHECK_DATA_INTRODUCOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
                
 				break;
@@ -188,7 +190,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 			{
 				gif_image_desc_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_image_desc_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = gifStruct.local_flag.local_color_tbl_flag ? 
@@ -196,7 +198,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
                
 				break;
@@ -206,14 +208,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          {
             gif_lzw_code_size_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_lzw_code_size_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = PARSING_IMAGE_DATA_TERMINATOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }  
             break;
          }
@@ -224,14 +226,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             gif_image_data_block_t gifStruct;
             unsigned char size = bufferM[0];
 				result = decodeStruct((char *) &gifStruct, size + 1, bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = PARSING_IMAGE_DATA_TERMINATOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }  
             break;
          }
@@ -240,7 +242,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          {
             gif_image_data_ter_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_image_data_ter_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
 
             if (0 != gifStruct.terminator){
@@ -252,7 +254,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
 				break;
             break;
@@ -263,14 +265,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 			{
 				gif_appl_ext_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_appl_ext_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = PARSING_SUB_BLOCK_TER_SIZE;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
                
 				break;
@@ -280,7 +282,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 			{
 				gif_data_sub_block_ter_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, 2, bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
 
 				if (0 != gifStruct.block_size)
@@ -294,7 +296,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
                
 				break;
@@ -306,14 +308,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 				gif_data_sub_block_ter_t gifStruct;
 				unsigned char size = (unsigned char)bufferM[0];
 				result = decodeStruct((char *) &gifStruct, size + 2, bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = CHECK_DATA_INTRODUCOR;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
 				break;
 			}
@@ -322,14 +324,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          {
             gif_trailer_t gifStruct;
 				result = decodeStruct((char *) &gifStruct, sizeof(gif_trailer_t), bufferM, theInputBuffer, decodeIndex);
-				if (DONE != result)
+				if (IMAGELIB::DONE != result)
                break;
             
             stateM = PARSING_DONE;
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
-               return ERROR;
+               return IMAGELIB::ERROR;
             }
                
 				break;
@@ -339,12 +341,12 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 			default:
 			{
 				stateM = PARSING_ERROR;
-				return ERROR;
+				return IMAGELIB::ERROR;
 			}
 
 		}// switch
 	}
-	if (ERROR == result)
+	if (IMAGELIB::ERROR == result)
 	{
 		stateM = PARSING_ERROR;
 	}
