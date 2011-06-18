@@ -518,14 +518,15 @@ int GifDumper::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer)
 {
-   cout << "output index:" << theOutputBuffer.length() << endl;
-	cout << "\t Image data block size:" << (int)theGifStruct.block_size << endl;
+   //cout << "output index:" << theOutputBuffer.length() << endl;
+	//cout << "\t Image data block size:" << (int)theGifStruct.block_size << endl;
+	cout << ".";
    return 0;
 }
 
 int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 {
-   cout << "\t Image data terminator:" << (int)theGifStruct.terminator<< endl;
+   cout << "\n\t Image data terminator:" << (int)theGifStruct.terminator<< endl;
    return 0;
 }
 
