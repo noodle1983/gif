@@ -3,6 +3,159 @@
 using namespace std;
 using namespace IMAGELIB::GIFLIB;
 
+void IzwDecompressor::init(const unsigned char theLzwCopdeSize)
+{
+   lzwCodeSizeM = theLzwCopdeSize;
+   if (lzwCodeSizeM > 8)
+      return;
+   clear();
+   outputOffsetM = 0;
+
+   for (int i = 0; i < startTableSizeM; i++)
+   {
+      stringTableM[i].preIndexM = -1;
+      stringTableM[i].colorM = i;
+   }
+
+   isEnd = 0;
+   holdingLenM = 0;
+   holdingBitsM = 0;
+   
+}
+
+IMAGELIB::Result IzwDecompressor::decompress(const gif_image_data_block_t& theInputData, string &theOutputData)
+{
+   if (lzwCodeSizeM > 8)
+      return IMAGELIB::ERROR;
+
+   unsigned char inputLen = theInputData.block_size;
+   unsigned char inputIndex = 0;
+   
+   while (!isEnd
+		&&(inputIndex < inputLen || holdingLenM >= curCodeSizeM))
+   {
+      //read the theInputData to holdingBitsM, 
+      //until it is large enough to get a code.
+      readData(theInputData, inputIndex);
+
+      //read curCodeM from holdingBitsM     
+	   if (holdingLenM < curCodeSizeM)
+	      return IMAGELIB::PARTLY;
+      getACode();
+
+      if (curCodeM == clearCodeM)
+      {
+         clear();
+			continue;
+      }else if (curCodeM == eofCodeM)
+      {
+         isEnd = 1;
+      }else if (-1 == oldCodeM) //at the beginning
+      {
+         theOutputData.append((char*)&stringTableM[curCodeM].colorM, 1);
+      }else if (curCodeM < nextCodeIndexM)//if found in string table
+      {
+         unsigned char codeString[4097] = {0};
+         int16_t codeStringLen = 0;
+         calcColorStringOfCode(curCodeM, codeString, codeStringLen);
+         
+         theOutputData.append((char*)codeString, codeStringLen);
+         
+         //update the string table
+         expandStringTable(codeString[0], oldCodeM);
+			
+      }else //if curcode is not in the string table
+      {
+         unsigned char codeString[4097] = {0};
+         int16_t codeStringLen = 0;
+         calcColorStringOfCode(oldCodeM, codeString, codeStringLen);
+
+         expandStringTable(codeString[0], oldCodeM);
+
+         theOutputData.append((char*)codeString, codeStringLen);
+         theOutputData.append((char*)&codeString[0], 1);
+      }
+      oldCodeM = curCodeM;
+   }
+   return (isEnd)? IMAGELIB::DONE : IMAGELIB::PARTLY;
+
+}
+
+
+/**
+ * read the theInputData to holdingBitsM, until it is large enough to get a code.
+ */
+void IzwDecompressor::readData(const gif_image_data_block_t& theInputData, unsigned char &theInputIndex)
+{
+   while(theInputIndex < theInputData.block_size 
+      && holdingLenM < curCodeSizeM)
+   {
+      unsigned char curChar = theInputData.data_value[theInputIndex++];
+      holdingBitsM = holdingBitsM + (curChar << holdingLenM);
+      holdingLenM += 8;
+   }
+}
+
+/**
+ * read curCodeM from holdingBitsM
+ */
+void IzwDecompressor::getACode()
+{
+   curCodeM = holdingBitsM & codeMaskM;
+   holdingBitsM >>= curCodeSizeM;
+   holdingLenM -= curCodeSizeM;
+}
+
+void IzwDecompressor::clear()
+{
+   curCodeSizeM = lzwCodeSizeM + 1;
+   codeMaskM = (1 << curCodeSizeM) - 1;
+   startTableSizeM = (1 << lzwCodeSizeM);
+   clearCodeM = startTableSizeM;
+   eofCodeM = clearCodeM + 1;
+   nextCodeIndexM = eofCodeM + 1;
+   oldCodeM = -1;
+}
+
+void IzwDecompressor::calcColorStringOfCode(const int16_t theCode, unsigned char* theColorString, int16_t &theStringLen)
+{
+   theStringLen = 0;
+   int16_t root = theCode;
+   while(1)
+   {
+      theColorString[theStringLen++] = stringTableM[root].colorM;
+      if (-1 == stringTableM[root].preIndexM)
+         break;
+      root = stringTableM[root].preIndexM;
+   }
+   
+   //reverse
+   int first = 0;
+   int last = theStringLen;
+   while((first!=last)&&(first!=--last))
+   {
+      unsigned char tmp = theColorString[first];
+      theColorString[first] = theColorString[last];
+      theColorString[last] = tmp;
+      first++;
+   }
+}
+
+void IzwDecompressor::expandStringTable(const unsigned char theColor, const int16_t thePreColorIndex)
+{
+   stringTableM[nextCodeIndexM].colorM = theColor;
+   stringTableM[nextCodeIndexM].preIndexM = thePreColorIndex;
+
+   //update the current code size
+   if (nextCodeIndexM > codeMaskM -1 && codeMaskM != 4095)
+   {
+      curCodeSizeM++;
+      codeMaskM = (1 << curCodeSizeM) - 1;
+   }
+   nextCodeIndexM++;
+}
+
+
 IMAGELIB::Result decodeStruct(
 	char* theImageStruct, const int theStructLen, 
 	string &theBuffer, const string &theInputBuffer,
@@ -488,6 +641,9 @@ int GifDumper::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffe
    return 0;
 }
 
+string output;
+IzwDecompressor gifdecoder;
+int size = 0;
 int GifDumper::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 {
 	cout << "output index:" << theOutputBuffer.length() << endl;
@@ -502,6 +658,7 @@ int GifDumper::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 		<< "\t\t sort_flag:" << (int)theGifStruct.local_flag.sort_flag << endl                      
 		<< "\t\t interlace_flag:" << (int)theGifStruct.local_flag.interlace_flag << endl            
 		<< "\t\t local_color_tbl_flag:" << (int)theGifStruct.local_flag.local_color_tbl_flag << endl;
+	size = theGifStruct.image_width * theGifStruct.image_height;
    return 0;
 }
 
@@ -515,6 +672,8 @@ int GifDumper::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
    cout << "output index:" << theOutputBuffer.length() << endl;
 	cout << "Image Data" << endl
       << "\t LZW code size:" << (int)theGifStruct.lzw_code_size << endl;
+	gifdecoder.init(theGifStruct.lzw_code_size);
+	output.clear();
    return 0;
 }
 
@@ -523,12 +682,16 @@ int GifDumper::exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffe
    //cout << "output index:" << theOutputBuffer.length() << endl;
 	//cout << "\t Image data block size:" << (int)theGifStruct.block_size << endl;
 	cout << ".";
+	gifdecoder.decompress(theGifStruct, output);
+	//cout << output.length();
    return 0;
 }
 
 int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 {
    cout << "\n\t Image data terminator:" << (int)theGifStruct.terminator<< endl;
+	cout << "size:" << size << ", gifdecoder size:" << output.length() << endl;
+	output.clear();
    return 0;
 }
 

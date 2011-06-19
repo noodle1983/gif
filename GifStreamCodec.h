@@ -94,156 +94,25 @@ public:
    {};
    enum{MAX_COLOR_STRING_LEN = 4097};
 
-   void init(const unsigned char theLzwCopdeSize)
-   {
-      lzwCodeSizeM = theLzwCopdeSize;
-      if (lzwCodeSizeM > 8)
-         return;
-      clear();
-      outputOffsetM = 0;
-
-      for (int i = 0; i < startTableSizeM; i++)
-      {
-         stringTableM[i].preIndexM = -1;
-         stringTableM[i].colorM = i;
-      }
-
-      isEnd = 0;
-      holdingLenM = 0;
-      holdingBitsM = 0;
-      
-   };
-   Result decompressor(const gif_image_data_block_t& theInputData, string &theOutputData)
-   {
-      if (lzwCodeSizeM > 8)
-         return ERROR;
-
-      unsigned char inputLen = theInputData.block_size;
-      unsigned char inputIndex = 0;
-      
-      while ((inputIndex < inputLen) && !isEnd)
-      {
-         //read the theInputData to holdingBitsM, 
-         //until it is large enough to get a code.
-         readData(theInputData, inputIndex);
-
-         //read curCodeM from holdingBitsM
-         getACode();
-
-         if (curCodeM == clearCodeM)
-         {
-            clear();
-         }else if (curCodeM == eofCodeM)
-         {
-            isEnd = 1;
-         }else if (-1 == oldCodeM) //at the beginning
-         {
-            assert(curCodeM < clearCodeM);
-            theOutputData.append((char*)&stringTableM[curCodeM].colorM, 1);
-         }else if (curCodeM < nextCodeIndexM)//if found in string table
-         {
-            //calc the string of stringTableM[curCodeM]
-            unsigned char codeString[4097] = {0};
-            int16_t codeStringLen = 0;
-            calcColorStringOfCode(curCodeM, codeString, codeStringLen);
-            
-            theOutputData.append((char*)codeString, codeStringLen);
-            
-            //update the string table
-            expandStringTable(codeString[0], oldCodeM);
-         }else //if curcode is not in the string table
-         {
-            //calc the string(reversed) of stringTableM[oldCodeM]
-            unsigned char codeString[4097] = {0};
-            int16_t codeStringLen = 0;
-            calcColorStringOfCode(oldCodeM, codeString, codeStringLen);
-
-            expandStringTable(codeString[0], oldCodeM);
-
-            theOutputData.append((char*)codeString, codeStringLen);
-            theOutputData.append((char*)&codeString[0], 1);
-         }
-         oldCodeM = curCodeM;
-      }
-      return (isEnd)? DONE : PARTLY;
-
-   }
+   void init(const unsigned char theLzwCopdeSize);
+   Result decompress(const gif_image_data_block_t& theInputData, string &theOutputData);
 
 private:
    /**
     * read the theInputData to holdingBitsM, until it is large enough to get a code.
     */
-   void readData(const gif_image_data_block_t& theInputData, unsigned char &theInputIndex)
-   {
-      while(theInputIndex < theInputData.block_size 
-         && holdingLenM < curCodeSizeM)
-      {
-         char curChar = theInputData.data_value[theInputIndex++];
-         holdingBitsM = holdingBitsM + (curChar << holdingLenM);
-         holdingLenM += 8;
-      }
-   }
+   void readData(const gif_image_data_block_t& theInputData, unsigned char &theInputIndex);
 
    /**
     * read curCodeM from holdingBitsM
     */
-   void getACode()
-   {
-      if (holdingLenM < curCodeSizeM)
-         return;
-      curCodeM = holdingBitsM & codeMaskM;
-      holdingBitsM >>= curCodeSizeM;
-      holdingLenM -= curCodeSizeM;
-   }
+   void getACode();
 
-   void clear()
-   {
-      curCodeSizeM = lzwCodeSizeM + 1;
-      codeMaskM = (1 << curCodeSizeM) - 1;
-      startTableSizeM = (1 << lzwCodeSizeM);
-      clearCodeM = startTableSizeM;
-      eofCodeM = clearCodeM + 1;
-      nextCodeIndexM = eofCodeM + 1;
-      oldCodeM = -1;
-   }
+   void clear();
 
-   void calcColorStringOfCode(const int16_t theCode, unsigned char* theColorString, int16_t &theStringLen)
-   {
-      theStringLen = 0;
-      int16_t root = theCode;
-      while(1)
-      {
-         theColorString[theStringLen++] = stringTableM[root].colorM;
-         if (-1 == stringTableM[root].preIndexM)
-            break;
-         root = stringTableM[root].preIndexM;
-      }
-      
-      //reverse
-      int first = 0;
-      int last = theStringLen;
-      while((first!=last)&&(first!=--last))
-      {
-         unsigned char tmp = theColorString[first];
-         theColorString[first] = theColorString[last];
-         theColorString[last] = tmp;
-         first++;
-      }
-   }
+   void calcColorStringOfCode(const int16_t theCode, unsigned char* theColorString, int16_t &theStringLen);
 
-   void expandStringTable(const unsigned char theColor, const int16_t thePreColorIndex)
-   {
-      stringTableM[nextCodeIndexM].colorM = theColor;
-      stringTableM[nextCodeIndexM].preIndexM = thePreColorIndex;
-
-      //update the current code size
-      if (nextCodeIndexM == codeMaskM && codeMaskM != 4095)
-      {
-         curCodeSizeM++;
-         codeMaskM = (1 << curCodeSizeM) - 1;
-      }
-      nextCodeIndexM++;
-   }
+   void expandStringTable(const unsigned char theColor, const int16_t thePreColorIndex);
    
    struct TableItem
    {
@@ -264,7 +133,7 @@ private:
    TableItem stringTableM[4096];
 
    int isEnd;
-   int16_t holdingBitsM;
+   uint32_t holdingBitsM;
    unsigned char holdingLenM;
    
    

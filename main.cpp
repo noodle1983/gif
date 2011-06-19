@@ -7,7 +7,8 @@ using namespace std;
 using namespace IMAGELIB;
 using namespace IMAGELIB::GIFLIB;
 
-int main()
+
+void testDecoder()
 {
 	char buf[512];
 	ifstream in;
@@ -26,7 +27,7 @@ int main()
       //   cout << "total output size:" << output.length() << endl;
       //}
 		if (result == ERROR)
-			return 0;
+			return;
 	}
    in.close();
    
@@ -35,6 +36,30 @@ int main()
    out.write(output.c_str(), output.length());
    out.close();
 
+}
+
+
+void testLzwDecompress()
+{
+	string output;
+	gif_image_data_block_t input = {7, 
+		{0x84, 0x02, 0x10, 0x92, 0xb7, 0x0c, 0x0a}};
+	const unsigned char rightOutput[] = 
+		{0, 2, 1, 0, 0, 1, 2, 0, 0, 2, 1, 1, 2, 2, 0, 0};
+	IzwDecompressor decompressor;
+	decompressor.init(2);
+	decompressor.decompress(input, output);
+	for (int i = 0; i < output.length(); i++)
+	{
+		assert(output[i] == rightOutput[i]);
+	}
+	
+}
+
+int main()
+{
+	testLzwDecompress();
+	testDecoder();
 	return 0;
 }
 
