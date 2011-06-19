@@ -94,7 +94,7 @@ public:
    {};
    enum{MAX_COLOR_STRING_LEN = 4097};
 
-   void init(const unsigned char theLzwCopdeSize);
+   Result init(const unsigned char theLzwCopdeSize);
    Result decompress(const gif_image_data_block_t& theInputData, string &theOutputData);
 
 private:
@@ -128,16 +128,51 @@ private:
    int16_t nextCodeIndexM;
    int16_t oldCodeM;
    int16_t curCodeM;
-   int16_t startTableSizeM;
-   int64_t outputOffsetM;
+   int16_t startTableSizeM; 
    TableItem stringTableM[4096];
 
-   int isEnd;
+   int isEndM;
    uint32_t holdingBitsM;
    unsigned char holdingLenM;
+};
+
+class IzwCompressor
+{
+public:
+   IzwCompressor()
+   {};
+   enum{MAX_COLOR_STRING_LEN = 4097};
+
+   Result init(const unsigned char theLzwCopdeSize);
+   Result compress(const string &theInputData, string &theOutputData);
+   Result writeEof(string &theOutputData);
    
+
+private:
    
+   struct TableItem
+   {
+      int16_t nextIndexM;
+      int16_t rightIndexM;
+      unsigned char colorM;
+   };
    
+   unsigned char lzwCodeSizeM;
+   unsigned char curCodeSizeM;
+   int16_t codeMaskM;
+   int16_t clearCodeM;
+   int16_t eofCodeM;
+   int16_t nextCodeIndexM;
+   uint16_t oldCodeM;
+   uint16_t curCodeM;
+   int16_t startTableSizeM; 
+   TableItem stringTableM[4096];
+
+   int isFirstTimeM;
+   uint64_t holdingBitsM;
+   char holdingLenM;
+   uint16_t maxColorM;
+   unsigned char curColorM;
 };
 
 class GifDataStreamDecoder

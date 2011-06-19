@@ -38,6 +38,24 @@ void testDecoder()
 
 }
 
+void testLzwCompress()
+{
+	unsigned char inputArray[] = 
+		{0, 2, 1, 0, 0, 1, 2, 0, 0, 2, 1, 1, 2, 2, 0, 0};
+	const char rightOutput[] = 
+		{0x84, 0x02, 0x10, 0x92, 0xb7, 
+		 0x0c, 0x0a};
+	string input((char*)inputArray, sizeof(inputArray));
+	string output;
+	IzwCompressor compressor;
+	compressor.init(2);
+	compressor.compress(input, output);
+	compressor.writeEof(output);
+	for (int i = 0; i < output.length(); i++)
+	{
+		assert(output[i] == rightOutput[i]);
+	}
+}
 
 void testLzwDecompress()
 {
@@ -58,8 +76,9 @@ void testLzwDecompress()
 
 int main()
 {
+	testLzwCompress();
 	testLzwDecompress();
-	testDecoder();
+	//testDecoder();
 	return 0;
 }
 

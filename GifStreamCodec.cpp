@@ -3,13 +3,12 @@
 using namespace std;
 using namespace IMAGELIB::GIFLIB;
 
-void IzwDecompressor::init(const unsigned char theLzwCopdeSize)
+IMAGELIB::Result IzwDecompressor::init(const unsigned char theLzwCopdeSize)
 {
    lzwCodeSizeM = theLzwCopdeSize;
    if (lzwCodeSizeM > 8)
-      return;
+      return IMAGELIB::ERROR;
    clear();
-   outputOffsetM = 0;
 
    for (int i = 0; i < startTableSizeM; i++)
    {
@@ -17,10 +16,10 @@ void IzwDecompressor::init(const unsigned char theLzwCopdeSize)
       stringTableM[i].colorM = i;
    }
 
-   isEnd = 0;
+   isEndM = 0;
    holdingLenM = 0;
    holdingBitsM = 0;
-   
+   return IMAGELIB::DONE;
 }
 
 IMAGELIB::Result IzwDecompressor::decompress(const gif_image_data_block_t& theInputData, string &theOutputData)
@@ -31,7 +30,7 @@ IMAGELIB::Result IzwDecompressor::decompress(const gif_image_data_block_t& theIn
    unsigned char inputLen = theInputData.block_size;
    unsigned char inputIndex = 0;
    
-   while (!isEnd
+   while (!isEndM
 		&&(inputIndex < inputLen || holdingLenM >= curCodeSizeM))
    {
       //read the theInputData to holdingBitsM, 
@@ -49,7 +48,7 @@ IMAGELIB::Result IzwDecompressor::decompress(const gif_image_data_block_t& theIn
 			continue;
       }else if (curCodeM == eofCodeM)
       {
-         isEnd = 1;
+         isEndM = 1;
       }else if (-1 == oldCodeM) //at the beginning
       {
          theOutputData.append((char*)&stringTableM[curCodeM].colorM, 1);
@@ -77,7 +76,7 @@ IMAGELIB::Result IzwDecompressor::decompress(const gif_image_data_block_t& theIn
       }
       oldCodeM = curCodeM;
    }
-   return (isEnd)? IMAGELIB::DONE : IMAGELIB::PARTLY;
+   return (isEndM)? IMAGELIB::DONE : IMAGELIB::PARTLY;
 
 }
 
@@ -155,6 +154,127 @@ void IzwDecompressor::expandStringTable(const unsigned char theColor, const int1
    nextCodeIndexM++;
 }
 
+IMAGELIB::Result IzwCompressor::init(const unsigned char theLzwCopdeSize)
+{
+   lzwCodeSizeM = theLzwCopdeSize;
+   if (lzwCodeSizeM > 8)
+      return IMAGELIB::ERROR;
+
+   isFirstTimeM = true;
+   maxColorM = 1 << lzwCodeSizeM;
+   for (int i = 0; i < maxColorM; i++)
+   {
+      stringTableM[i].nextIndexM = -1;
+      stringTableM[i].rightIndexM = i + 1;
+      stringTableM[i].colorM = i;
+   }
+
+   clearCodeM = maxColorM;
+   eofCodeM = clearCodeM + 1;
+   startTableSizeM = eofCodeM + 1;
+   nextCodeIndexM = startTableSizeM;
+   curCodeSizeM = lzwCodeSizeM + 1;
+
+   holdingBitsM = clearCodeM;
+   holdingLenM = curCodeSizeM;
+   return IMAGELIB::DONE;
+   
+};
+
+IMAGELIB::Result IzwCompressor::compress(const string &theInputData, string &theOutputData)
+{
+   if (lzwCodeSizeM > 8)
+      return IMAGELIB::ERROR;
+
+   if (theInputData.empty())
+      return IMAGELIB::DONE;
+      
+   int inputIndex = 0;
+   if (isFirstTimeM)
+   {
+      isFirstTimeM = 0;
+      curColorM = theInputData[inputIndex++];
+      curCodeM = curColorM;
+      oldCodeM = curCodeM;
+   }
+
+   while (inputIndex < theInputData.length())
+   {
+      curColorM = theInputData[inputIndex++];
+      oldCodeM = curCodeM;
+      if (-1 == stringTableM[curCodeM].nextIndexM)
+      {
+         stringTableM[curCodeM].nextIndexM = nextCodeIndexM;
+      }else
+      {
+         curCodeM = stringTableM[curCodeM].nextIndexM;
+         while (stringTableM[curCodeM].colorM != curColorM
+            && -1 != stringTableM[curCodeM].rightIndexM)
+         {
+            curCodeM = stringTableM[curCodeM].rightIndexM;
+         }
+
+         if (stringTableM[curCodeM].colorM != curColorM
+            && -1 == stringTableM[curCodeM].rightIndexM)
+         {
+            stringTableM[curCodeM].rightIndexM = nextCodeIndexM;
+         }else
+         {
+            continue;
+         }
+      }
+
+      holdingBitsM = holdingBitsM + (oldCodeM<<holdingLenM);
+      holdingLenM += curCodeSizeM;
+
+      stringTableM[nextCodeIndexM].rightIndexM = -1;
+      stringTableM[nextCodeIndexM].nextIndexM = -1;
+      stringTableM[nextCodeIndexM].colorM = curColorM;
+      curCodeM = curColorM;
+
+      if (0 != (nextCodeIndexM >> curCodeSizeM))
+      {
+         if (curCodeSizeM >=12)
+         {
+            holdingBitsM = holdingBitsM + (clearCodeM << holdingLenM);
+            holdingLenM = holdingLenM + curCodeSizeM;
+            for (int i = 0; i < maxColorM; i++)
+               stringTableM[i].nextIndexM = -1;
+            nextCodeIndexM = startTableSizeM - 1;
+            curCodeSizeM = lzwCodeSizeM;
+         }
+         curCodeSizeM++;
+      }
+      nextCodeIndexM++;
+
+      while (holdingLenM >= 8)
+      {
+         char color = holdingBitsM & 0xFF;
+         theOutputData.append(1, color);
+         holdingBitsM >>= 8;
+         holdingLenM -= 8;
+      }
+
+   }
+   return IMAGELIB::DONE;
+}
+
+IMAGELIB::Result IzwCompressor::writeEof(string &theOutputData)
+{
+   holdingBitsM = holdingBitsM + (curCodeM << holdingLenM);
+   holdingLenM += curCodeSizeM;
+   holdingBitsM = holdingBitsM + (eofCodeM << holdingLenM);
+   holdingLenM += curCodeSizeM;
+
+   while (holdingLenM > 0)
+   {
+      char color = holdingBitsM & 0xFF;
+      theOutputData.append(1, color);
+      holdingBitsM >>= 8;
+      holdingLenM -= 8;
+   }
+   return IMAGELIB::DONE;
+}
 
 IMAGELIB::Result decodeStruct(
 	char* theImageStruct, const int theStructLen, 
