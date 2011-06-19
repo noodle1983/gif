@@ -78,7 +78,7 @@ int main()
 {
 	testLzwCompress();
 	testLzwDecompress();
-	//testDecoder();
+	testDecoder();
 	return 0;
 }
 

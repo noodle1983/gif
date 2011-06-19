@@ -761,9 +761,6 @@ int GifDumper::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffe
    return 0;
 }
 
-string output;
-IzwDecompressor gifdecoder;
-int size = 0;
 int GifDumper::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 {
 	cout << "output index:" << theOutputBuffer.length() << endl;
@@ -778,7 +775,6 @@ int GifDumper::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 		<< "\t\t sort_flag:" << (int)theGifStruct.local_flag.sort_flag << endl                      
 		<< "\t\t interlace_flag:" << (int)theGifStruct.local_flag.interlace_flag << endl            
 		<< "\t\t local_color_tbl_flag:" << (int)theGifStruct.local_flag.local_color_tbl_flag << endl;
-	size = theGifStruct.image_width * theGifStruct.image_height;
    return 0;
 }
 
@@ -792,8 +788,6 @@ int GifDumper::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
    cout << "output index:" << theOutputBuffer.length() << endl;
 	cout << "Image Data" << endl
       << "\t LZW code size:" << (int)theGifStruct.lzw_code_size << endl;
-	gifdecoder.init(theGifStruct.lzw_code_size);
-	output.clear();
    return 0;
 }
 
@@ -802,7 +796,6 @@ int GifDumper::exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffe
    //cout << "output index:" << theOutputBuffer.length() << endl;
 	//cout << "\t Image data block size:" << (int)theGifStruct.block_size << endl;
 	cout << ".";
-	gifdecoder.decompress(theGifStruct, output);
 	//cout << output.length();
    return 0;
 }
@@ -810,8 +803,6 @@ int GifDumper::exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffe
 int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 {
    cout << "\n\t Image data terminator:" << (int)theGifStruct.terminator<< endl;
-	cout << "size:" << size << ", gifdecoder size:" << output.length() << endl;
-	output.clear();
    return 0;
 }
 
