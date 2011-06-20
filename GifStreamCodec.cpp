@@ -757,6 +757,45 @@ int GifEncoder::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
    return 0;
 }
 
+int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
+{
+   theGifStruct.lgc_scr_width /= 2;
+   return 0;
+}
+
+int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
+{
+   inputWidthM = theGifStruct.image_width;
+   inputHeightM = theGifStruct.image_height;
+   curXM = 0;
+   curYM = 0;
+   theGifStruct.image_left /=2;
+   theGifStruct.image_width /=2;
+   return 0;
+}
+
+int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
+{
+   string outputData;
+   for (int i = 0; i < theGifPlainData.length(); i++)
+   {
+      if (0 == curYM%2)
+      {
+         outputData.append(1, theGifPlainData[i]);
+      }
+      
+      curYM ++;
+      curXM += curYM / inputWidthM;
+      curYM = curYM % inputWidthM;
+   }
+   theGifPlainData = outputData;
+   return 0;
+}
+
+int GifResizer::exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)
+{
+   return 0;
+}
 
 int GifDumper::exec(gif_header_t &theGifStruct, string &theOutputBuffer)
 {
