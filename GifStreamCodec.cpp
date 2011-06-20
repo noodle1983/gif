@@ -485,6 +485,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
                break;
             
             stateM = PARSING_IMAGE_DATA_TERMINATOR;
+            izwDecompressor.init(gifStruct.lzw_code_size);
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
@@ -503,7 +504,12 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
                break;
             
             stateM = PARSING_IMAGE_DATA_TERMINATOR;
-            if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+            
+            string gifPlainData;
+            gifPlainData.reserve(gifStruct.block_size * 2);
+            
+            izwDecompressor.decompress(gifStruct, gifPlainData);
+            if (0 != handlerM->handle(gifPlainData, theOutputBuffer))
             {
             	stateM = PARSING_ERROR;
                return IMAGELIB::ERROR;
@@ -665,6 +671,8 @@ int GifEncoder::exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer)
 
 int GifEncoder::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
 {
+   outputBufferM.clear();
+   izwCompressor.init(theGifStruct.lzw_code_size);
    theOutputBuffer.append((const char*)&theGifStruct, sizeof(gif_lzw_code_size_t));
    return 0;
 }
@@ -677,7 +685,45 @@ int GifEncoder::exec(gif_image_data_block_t &theGifStruct, string &theOutputBuff
 
 int GifEncoder::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 {
+   izwCompressor.writeEof(outputBufferM);
+   int bufferLen = outputBufferM.length();
+   int buferIndex = 0;
+   while ((bufferLen - buferIndex) >= 255)
+   {
+      gif_image_data_block_t imageData;
+      imageData.block_size = 255;
+      memcpy(imageData.data_value, outputBufferM.c_str() + buferIndex, 255);
+      buferIndex += 255;
+      exec(imageData, theOutputBuffer);
+   }
+   if ((bufferLen - buferIndex) > 0)
+   {
+      gif_image_data_block_t imageData;
+      imageData.block_size = bufferLen - buferIndex;
+      memcpy(imageData.data_value, outputBufferM.c_str() + buferIndex, bufferLen - buferIndex);
+      exec(imageData, theOutputBuffer);
+   }
+   outputBufferM.clear();
    theOutputBuffer.append((const char*)&theGifStruct, sizeof(gif_image_data_ter_t));
+   return 0;
+}
+
+
+int GifEncoder::exec(string &theGifPlainData, string &theOutputBuffer)
+{
+	izwCompressor.compress(theGifPlainData, outputBufferM);
+   int bufferLen = outputBufferM.length();
+   int buferIndex = 0;
+   while ((bufferLen - buferIndex) >= 255)
+   {
+      gif_image_data_block_t imageData;
+      imageData.block_size = 255;
+      memcpy(imageData.data_value, outputBufferM.c_str() + buferIndex, 255);
+      buferIndex += 255;
+      exec(imageData, theOutputBuffer);
+   }
+   outputBufferM = outputBufferM.substr(buferIndex);
+   
    return 0;
 }
 
@@ -807,6 +853,12 @@ int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 }
 
 
+int GifDumper::exec(string &theGifPlainData, string &theOutputBuffer)
+{
+	cout << "[" << theGifPlainData.length() << "]";
+   return 0;
+}
+
 int GifDumper::exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)
 {
    return 0;
@@ -842,4 +894,5 @@ int GifDumper::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 	cout << "Trailer" << endl;
    return 0;
 }
+
 

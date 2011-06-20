@@ -84,6 +84,7 @@ protected:
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer) = 0;
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(string &theGifPlainData, string &theOutputBuffer)=0;
    GifHanderInterface *nextHandlerM; 
 };
 
@@ -227,6 +228,7 @@ private:
    
    int stateM;
    GifHanderInterface *handlerM; 
+   IzwDecompressor izwDecompressor;
 
    size_t globalTableSizeM;
    size_t localTableSizeM;
@@ -237,7 +239,7 @@ private:
 class GifEncoder: public GifHanderInterface
 {
 public:
-   GifEncoder(){};
+   GifEncoder(){outputBufferM.reserve(1024);};
    GifEncoder(GifHanderInterface *theNextHandler)
       :GifHanderInterface(theNextHandler){};
    
@@ -256,6 +258,10 @@ protected:
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(string &theGifPlainData, string &theOutputBuffer);
+
+   IzwCompressor izwCompressor;
+   string outputBufferM;
 };
 
 class GifDumper: public GifHanderInterface
@@ -280,6 +286,7 @@ protected:
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
+   virtual int exec(string &theGifPlainData, string &theOutputBuffer);
 };
 };//namespace GIFLIB
 };//namespace IMAGELIB
