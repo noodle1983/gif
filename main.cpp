@@ -13,11 +13,16 @@ using namespace IMAGELIB;
 using namespace IMAGELIB::GIFLIB;
 
 
-void testDecoder()
+void testDecoder(const string& theInputFileName)
 {
 	char buf[512];
 	ifstream in;
-	in.open ("test.gif", ios::binary );
+	in.open (theInputFileName.c_str(), ios::binary );
+	if (!in.is_open())
+	{
+		cout << "can't open file:" << theInputFileName << endl;
+		return;
+	}
     
 	GifDataStreamDecoder gif_data(
       new GifResizer(2.7, 
@@ -38,9 +43,10 @@ void testDecoder()
 			return;
 	}
    in.close();
-   
+
+	string outputFileName = string("tiny_") + theInputFileName;
    ofstream out;
-   out.open ("out.gif", ofstream::binary );
+   out.open (outputFileName.c_str(), ofstream::binary );
    out.write(output.c_str(), output.length());
    out.close();
 
@@ -135,13 +141,21 @@ void testLzwDecompressLargeData()
 	
 }
 
-int main()
+int main(int argc, char* argv[])
 {
 	//testLzwCompress();
 	//testLzwDecompress();
-	testDecoder();
 	//testLzwDecompressLargeData();
 	//testLzwCompressLargeData();
+	if (argc < 2)
+	{
+		cout << "usage: gifresizer.exe filename1 filename2 ..." << endl;
+		return 0;
+	}
+	for (int i = 1; i < argc; i++)
+	{
+		testDecoder(string(argv[i]));
+	}
 	return 0;
 }
 
