@@ -64,7 +64,7 @@ public:
       if (0 != exec(theStruct, theOutputBuffer))
          return -1;
       if (nextHandlerM)
-         nextHandlerM->handle(theStruct, theOutputBuffer);
+         return nextHandlerM->handle(theStruct, theOutputBuffer);
       return 0;
    }
 
@@ -298,9 +298,6 @@ protected:
    unsigned outputFrameWidthM;
    unsigned outputFrameHeightM;
    long long outputFrameIndexM;
-
-   unsigned int outputBitsM;
-   unsigned char outputBitsLenM;
     
    unsigned curXM, curYM;
 };

@@ -20,7 +20,7 @@ void testDecoder()
 	in.open ("test.gif", ios::binary );
     
 	GifDataStreamDecoder gif_data(
-      new GifResizer(3, 
+      new GifResizer(2.7, 
       new GifDumper(
       new GifEncoder)));
    string output;

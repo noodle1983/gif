@@ -763,8 +763,8 @@ int GifEncoder::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 {
    assert(outputRateM > 1.0);
-   theGifStruct.lgc_scr_width /= outputRateM;
-   theGifStruct.lgc_scr_height /= outputRateM;
+   theGifStruct.lgc_scr_width = (uint16_t)(theGifStruct.lgc_scr_width/outputRateM);
+   theGifStruct.lgc_scr_height = (uint16_t)(theGifStruct.lgc_scr_height/outputRateM);
    return 0;
 }
 
@@ -772,10 +772,10 @@ int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 {
    inputFrameWidthM = theGifStruct.image_width;
    inputFrameHeightM = theGifStruct.image_height;
-   theGifStruct.image_left /= outputRateM;
-   theGifStruct.image_top  /= outputRateM;
-   theGifStruct.image_width /=outputRateM;
-   theGifStruct.image_height /= outputRateM;
+   theGifStruct.image_left = (uint16_t)(theGifStruct.image_left/outputRateM);
+   theGifStruct.image_top  = (uint16_t)(theGifStruct.image_top/outputRateM);
+   theGifStruct.image_width = (uint16_t)(theGifStruct.image_width/outputRateM);
+   theGifStruct.image_height = (uint16_t)(theGifStruct.image_height/outputRateM);
    outputFrameWidthM = theGifStruct.image_width;
    outputFrameHeightM = theGifStruct.image_height;
    return 0;
@@ -790,8 +790,6 @@ int GifResizer::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
       || 1 == lzwCodeSizeM);
    curXM = 0;
    curYM = 0;
-   outputBitsM = 0;
-   outputBitsLenM = 0; 
    outputFrameIndexM = -1;
    return 0;
 }
@@ -799,48 +797,26 @@ int GifResizer::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
 int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
 {
    string outputData;
-   size_t outputLen = theGifPlainData.length()/outputRateM;
+   size_t outputLen = (size_t)(theGifPlainData.length()/outputRateM);
    outputData.reserve(outputLen + 1);
 
-   unsigned char inputBits;
-   int inputBitLen;
-   unsigned char mask = (1 << lzwCodeSizeM) - 1;
-   unsigned char curColor;
    for (int i = 0; i < theGifPlainData.length(); i++)
    {
-      inputBitLen = 8;
-      inputBits = theGifPlainData[i];
-      while(inputBitLen > 0)
-      {
-         curColor = inputBits & mask;
-         inputBits >>= lzwCodeSizeM;
-         inputBitLen -= lzwCodeSizeM;
+      unsigned char curColor = theGifPlainData[i];
 
-         //x * width + y
-         unsigned outputX = ((float)curXM) * outputFrameHeightM / inputFrameHeightM;
-         unsigned outputY = ((float)curYM) * outputFrameWidthM / inputFrameWidthM;
-         curYM++;
-         curXM += curYM / inputFrameWidthM;
-         curYM = curYM % inputFrameWidthM;
-         long long newOutputYIndex = outputX * outputFrameWidthM + outputY;
-         if (newOutputYIndex <= outputFrameIndexM)
-            continue;
-         outputFrameIndexM = newOutputYIndex;
-         
-         outputBitsM = outputBitsM + (curColor << outputBitsLenM);
-         outputBitsLenM += lzwCodeSizeM;
-
-         while(outputBitsLenM >= 8)
-         {
-            char outputChar = outputBitsM & 0xFF;
-            outputData.append(&outputChar, 1);
-            outputBitsM >>= 8;
-            outputBitsLenM -= 8;
-         }
-
-      }
-      
+      //x * width + y
+      unsigned outputX = (unsigned)(((float)curXM) * outputFrameHeightM / inputFrameHeightM);
+      unsigned outputY = (unsigned)(((float)curYM) * outputFrameWidthM / inputFrameWidthM);
+      curYM++;
+      curXM += curYM / inputFrameWidthM;
+      curYM = curYM % inputFrameWidthM;
+      long long newOutputYIndex = outputX * outputFrameWidthM + outputY;
+      if (newOutputYIndex <= outputFrameIndexM)
+         continue;
+      outputFrameIndexM = newOutputYIndex;
+		outputData.append((char*)&curColor, 1); 
    }
+
    theGifPlainData = outputData;
    return 0;
 }
@@ -947,7 +923,7 @@ int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(string &theGifPlainData, string &theOutputBuffer)
 {
-	//cout << "[" << theGifPlainData.length() << "]";
+	cout << "[" << theGifPlainData.length() << "]";
    return 0;
 }
 
