@@ -488,6 +488,7 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
                break;
             
             stateM = PARSING_IMAGE_DATA_TERMINATOR;
+				gifStruct.lzw_code_size = (gifStruct.lzw_code_size > 8)? 8 : gifStruct.lzw_code_size;
             izwDecompressor.init(gifStruct.lzw_code_size);
             if (0 != handlerM->handle(gifStruct, theOutputBuffer))
             {
@@ -784,10 +785,10 @@ int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 int GifResizer::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
 {
    lzwCodeSizeM = theGifStruct.lzw_code_size;
-   assert(8 == lzwCodeSizeM
-      || 4 == lzwCodeSizeM
-      || 2 == lzwCodeSizeM
-      || 1 == lzwCodeSizeM);
+   //assert(8 == lzwCodeSizeM
+   //   || 4 == lzwCodeSizeM
+   //   || 2 == lzwCodeSizeM
+   //   || 1 == lzwCodeSizeM);
    curXM = 0;
    curYM = 0;
    outputFrameIndexM = -1;
