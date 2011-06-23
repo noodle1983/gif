@@ -297,7 +297,7 @@ protected:
    unsigned inputFrameHeightM;
    unsigned outputFrameWidthM;
    unsigned outputFrameHeightM;
-   unsigned int outputFrameIndexM;
+   long long outputFrameIndexM;
 
    unsigned int outputBitsM;
    unsigned char outputBitsLenM;

@@ -792,7 +792,7 @@ int GifResizer::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
    curYM = 0;
    outputBitsM = 0;
    outputBitsLenM = 0; 
-   outputFrameIndexM = 0;
+   outputFrameIndexM = -1;
    return 0;
 }
 
@@ -822,7 +822,7 @@ int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
          curYM++;
          curXM += curYM / inputFrameWidthM;
          curYM = curYM % inputFrameWidthM;
-         size_t newOutputYIndex = outputX * outputFrameWidthM + outputY;
+         long long newOutputYIndex = outputX * outputFrameWidthM + outputY;
          if (newOutputYIndex <= outputFrameIndexM)
             continue;
          outputFrameIndexM = newOutputYIndex;
@@ -832,7 +832,7 @@ int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
 
          while(outputBitsLenM >= 8)
          {
-            char outputChar = outputBitsM && 0xFF;
+            char outputChar = outputBitsM & 0xFF;
             outputData.append(&outputChar, 1);
             outputBitsM >>= 8;
             outputBitsLenM -= 8;
