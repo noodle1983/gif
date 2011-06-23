@@ -763,6 +763,7 @@ int GifEncoder::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 {
    theGifStruct.lgc_scr_width /= 2;
+   theGifStruct.lgc_scr_height /= 2;
    return 0;
 }
 
@@ -773,16 +774,19 @@ int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
    curXM = 0;
    curYM = 0;
    theGifStruct.image_left /=2;
+   theGifStruct.image_top  /= 2;
    theGifStruct.image_width /=2;
+   theGifStruct.image_height /=2;
    return 0;
 }
 
 int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
 {
    string outputData;
+   
    for (int i = 0; i < theGifPlainData.length(); i++)
    {
-      if (0 == curYM%2)
+      if ((0 == curXM%2)&& (0 == curYM%2))
       {
          outputData.append(1, theGifPlainData[i]);
       }
