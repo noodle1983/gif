@@ -19,7 +19,10 @@ void testDecoder()
 	ifstream in;
 	in.open ("test.gif", ios::binary );
     
-	GifDataStreamDecoder gif_data(new GifResizer(new GifDumper(new GifEncoder)));
+	GifDataStreamDecoder gif_data(
+      new GifResizer(2, 
+      new GifDumper(
+      new GifEncoder)));
    string output;
 
 	int totalSize = 0;

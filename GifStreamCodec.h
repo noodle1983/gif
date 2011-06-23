@@ -268,18 +268,19 @@ protected:
 class GifResizer: public GifHanderInterface
 {
 public:
-   GifResizer(){};
-   GifResizer(GifHanderInterface *theNextHandler)
-      :GifHanderInterface(theNextHandler){};
+   GifResizer(const float thetRate,
+      GifHanderInterface *theNextHandler)
+         : outputRateM(thetRate)
+         , GifHanderInterface(theNextHandler){};
    
-protected:   
+protected:  
    virtual int exec(gif_header_t &theGifStruct, string &theOutputBuffer){return 0;};  
    virtual int exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer){return 0;};
-   virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer){return 0;};
+   virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(string &theGifPlainData, string &theOutputBuffer);
@@ -289,8 +290,17 @@ protected:
    virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer){return 0;};
 
-   unsigned inputWidthM;
-   unsigned inputHeightM;
+   unsigned char lzwCodeSizeM;
+   float outputRateM; //input /output, should > 1.0
+
+   unsigned inputFrameWidthM;
+   unsigned inputFrameHeightM;
+   unsigned outputFrameWidthM;
+   unsigned outputFrameHeightM;
+   unsigned int outputFrameIndexM;
+
+   unsigned int outputBitsM;
+   unsigned char outputBitsLenM;
     
    unsigned curXM, curYM;
 };

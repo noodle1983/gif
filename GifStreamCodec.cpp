@@ -762,38 +762,84 @@ int GifEncoder::exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)
 
 int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 {
-   theGifStruct.lgc_scr_width /= 2;
-   theGifStruct.lgc_scr_height /= 2;
+   assert(outputRateM > 1.0);
+   theGifStruct.lgc_scr_width /= outputRateM;
+   theGifStruct.lgc_scr_height /= outputRateM;
    return 0;
 }
 
 int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 {
-   inputWidthM = theGifStruct.image_width;
-   inputHeightM = theGifStruct.image_height;
+   inputFrameWidthM = theGifStruct.image_width;
+   inputFrameHeightM = theGifStruct.image_height;
+   theGifStruct.image_left /= outputRateM;
+   theGifStruct.image_top  /= outputRateM;
+   theGifStruct.image_width /=outputRateM;
+   theGifStruct.image_height /= outputRateM;
+   outputFrameWidthM = theGifStruct.image_width;
+   outputFrameHeightM = theGifStruct.image_height;
+   return 0;
+}
+
+int GifResizer::exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)
+{
+   lzwCodeSizeM = theGifStruct.lzw_code_size;
+   assert(8 == lzwCodeSizeM
+      || 4 == lzwCodeSizeM
+      || 2 == lzwCodeSizeM
+      || 1 == lzwCodeSizeM);
    curXM = 0;
    curYM = 0;
-   theGifStruct.image_left /=2;
-   theGifStruct.image_top  /= 2;
-   theGifStruct.image_width /=2;
-   theGifStruct.image_height /=2;
+   outputBitsM = 0;
+   outputBitsLenM = 0; 
+   outputFrameIndexM = 0;
    return 0;
 }
 
 int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
 {
    string outputData;
-   
+   size_t outputLen = theGifPlainData.length()/outputRateM;
+   outputData.reserve(outputLen + 1);
+
+   unsigned char inputBits;
+   int inputBitLen;
+   unsigned char mask = (1 << lzwCodeSizeM) - 1;
+   unsigned char curColor;
    for (int i = 0; i < theGifPlainData.length(); i++)
    {
-      if ((0 == curXM%2)&& (0 == curYM%2))
+      inputBitLen = 8;
+      inputBits = theGifPlainData[i];
+      while(inputBitLen > 0)
       {
-         outputData.append(1, theGifPlainData[i]);
+         curColor = inputBits & mask;
+         inputBits >>= lzwCodeSizeM;
+         inputBitLen -= lzwCodeSizeM;
+
+         //x * width + y
+         unsigned outputX = ((float)curXM) * outputFrameHeightM / inputFrameHeightM;
+         unsigned outputY = ((float)curYM) * outputFrameWidthM / inputFrameWidthM;
+         curYM++;
+         curXM += curYM / inputFrameWidthM;
+         curYM = curYM % inputFrameWidthM;
+         size_t newOutputYIndex = outputX * outputFrameWidthM + outputY;
+         if (newOutputYIndex <= outputFrameIndexM)
+            continue;
+         outputFrameIndexM = newOutputYIndex;
+         
+         outputBitsM = outputBitsM + (curColor << outputBitsLenM);
+         outputBitsLenM += lzwCodeSizeM;
+
+         while(outputBitsLenM >= 8)
+         {
+            char outputChar = outputBitsM && 0xFF;
+            outputData.append(&outputChar, 1);
+            outputBitsM >>= 8;
+            outputBitsLenM -= 8;
+         }
+
       }
       
-      curYM ++;
-      curXM += curYM / inputWidthM;
-      curYM = curYM % inputWidthM;
    }
    theGifPlainData = outputData;
    return 0;
@@ -901,7 +947,7 @@ int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(string &theGifPlainData, string &theOutputBuffer)
 {
-	cout << "[" << theGifPlainData.length() << "]";
+	//cout << "[" << theGifPlainData.length() << "]";
    return 0;
 }
 
