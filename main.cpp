@@ -1,7 +1,10 @@
+#include <assert.h>
+#include <string.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 using namespace std;
+
 
 #include "GifStreamCodec.h"
 #include "PlainData.h"
@@ -61,6 +64,9 @@ void testLzwCompress()
 
 void testLzwCompressLargeData()
 {
+   cout << "==================================================================================" << endl;
+   cout << "--------------------------testLzwCompressLargeData--------------------------------" << endl;
+   cout << "total output data should be " << sizeof(COMPRESSED_DATA)  << endl; 
 	string input(GIF_PLAIN_DATA, sizeof(GIF_PLAIN_DATA));
 	string output;
 	IzwCompressor compressor;
@@ -71,9 +77,12 @@ void testLzwCompressLargeData()
 	{
 		if (output[i] != COMPRESSED_DATA[i]){
 			cout << "unmatch data at " << i << endl;
+			cout << "expect: 0x" << std::hex << ((int)COMPRESSED_DATA[i]&0xFF) 
+              << ", actually: 0x" << std::hex << ((int)output[i]&0xFF)<< endl;
 		}
 		assert(output[i] == COMPRESSED_DATA[i]);
 	}
+   cout << "==================================================================================" << endl;
 }
 
 
@@ -127,9 +136,9 @@ int main()
 {
 	//testLzwCompress();
 	//testLzwDecompress();
-	//testDecoder();
+	testDecoder();
 	//testLzwDecompressLargeData();
-	testLzwCompressLargeData();
+	//testLzwCompressLargeData();
 	return 0;
 }
 

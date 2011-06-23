@@ -1,5 +1,7 @@
 #include "GifStreamCodec.h"
 #include <iostream>
+#include <string.h>
+#include <assert.h>
 using namespace std;
 using namespace IMAGELIB::GIFLIB;
 
@@ -232,7 +234,8 @@ IMAGELIB::Result IzwCompressor::compress(const string &theInputData, string &the
       stringTableM[nextCodeIndexM].colorM = curColorM;
       curCodeM = curColorM;
 
-      if (0 != (nextCodeIndexM >> curCodeSizeM))
+      if (0 != (nextCodeIndexM >> curCodeSizeM)
+            || nextCodeIndexM == 4093)
       {
          if (curCodeSizeM >=12)
          {
