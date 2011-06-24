@@ -27,8 +27,8 @@ void testDecoder(const string& theInputFileName)
     
 	GifDataStreamDecoder gif_data(
       new GifResizer(2.7, 
-      //new GifDumper(
-      new GifEncoder));//);
+      new GifDumper(
+      new GifEncoder)));
    string output;
 
 	int totalSize = 0;
@@ -41,7 +41,10 @@ void testDecoder(const string& theInputFileName)
       //   cout << "total output size:" << output.length() << endl;
       //}
 		if (result == ERROR)
+		{
+         cout << "decode error!" << endl;
 			return;
+		}
 	}
    in.close();
 

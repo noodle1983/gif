@@ -310,8 +310,8 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 	IMAGELIB::Result result = IMAGELIB::DONE;
 	while(IMAGELIB::DONE == result && PARSING_DONE != stateM)
 	{
-		//if (stateM != PARSING_IMAGE_DATA_BLOCK && stateM != PARSING_IMAGE_DATA_TERMINATOR)
-		//	cout << "state:" << stateM << endl;
+		if (stateM != PARSING_IMAGE_DATA_BLOCK && stateM != PARSING_IMAGE_DATA_TERMINATOR)
+			cout << "state:" << stateM << endl;
 	   switch(stateM)
 		{
 	      case PARSING_HEADER:
@@ -343,6 +343,10 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             result = stateParsingImageDescriptor(theInputBuffer, decodeIndex, theOutputBuffer);
 				break;
 
+         case PARSING_LOCAL_COLOR_TABLE:
+            result = stateParsingLocalColorTable(theInputBuffer, decodeIndex, theOutputBuffer);
+				break;
+            
          case PARSING_IMAGE_DATA_LZW_CODE_SIZE:
             result = stateParsingImageDataLzwCodeSize(theInputBuffer, decodeIndex, theOutputBuffer);
 				break;
@@ -360,6 +364,10 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 			case PARSING_APPLICATION_EXTENSION:
             result = stateParsingApplicationExtension(theInputBuffer, decodeIndex, theOutputBuffer);
 				break;
+         
+         case PARSING_COMMENT_EXTENSION:
+            result = stateParsingCommentExtension(theInputBuffer, decodeIndex, theOutputBuffer);
+				break;
 
 			case PARSING_SUB_BLOCK_TER_SIZE:
             result = stateParsingSubBlockTerSize(theInputBuffer, decodeIndex, theOutputBuffer);
@@ -373,11 +381,8 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
             result = stateParsingTrailer(theInputBuffer, decodeIndex, theOutputBuffer);
 				break;
             
-         case PARSING_COMMENT_EXTENSION:
-            result = stateParsingCommentExtension(theInputBuffer, decodeIndex, theOutputBuffer);
-				break;
             
-         case PARSING_LOCAL_COLOR_TABLE:
+            
          case PARSING_PLAIN_TEXT_EXTENSION:
          {
             cout << "state:" << stateM << endl;
@@ -440,6 +445,7 @@ GifDataStreamDecoder::stateParsingLogicalScreenDescriptor(
       globalTableSizeM = 1 << (gifStruct.global_flag.global_color_tbl_sz + 1);
    }else{
       stateM = CHECK_DATA_INTRODUCOR;
+      globalTableSizeM = 0;
    }
    if (0 != handlerM->handle(gifStruct, theOutputBuffer))
    {
@@ -586,16 +592,44 @@ GifDataStreamDecoder::stateParsingImageDescriptor(
    gif_image_desc_t gifStruct;
    IMAGELIB::Result result = decodeStruct((char *) &gifStruct, sizeof(gif_image_desc_t), bufferM, theInputBuffer, theDecodeIndex);
    if (IMAGELIB::DONE != result)
-   return result;
+      return result;
 
-   stateM = gifStruct.local_flag.local_color_tbl_flag ? 
-          PARSING_LOCAL_COLOR_TABLE : PARSING_IMAGE_DATA_LZW_CODE_SIZE;
+   if (gifStruct.local_flag.local_color_tbl_flag)
+   {
+      stateM = PARSING_LOCAL_COLOR_TABLE;
+      localTableSizeM = 1 << (gifStruct.local_flag.local_color_tbl_sz + 1);
+   }else
+   {
+      stateM = PARSING_IMAGE_DATA_LZW_CODE_SIZE;
+      localTableSizeM = 0;
+   }
    if (0 != handlerM->handle(gifStruct, theOutputBuffer))
    {
        stateM = PARSING_ERROR;
       return IMAGELIB::ERROR;
    }
    return result;
+}
+
+IMAGELIB::Result 
+GifDataStreamDecoder::stateParsingLocalColorTable(
+   const string &theInputBuffer
+   , uint64_t &theDecodeIndex
+   , string &theOutputBuffer)
+{
+   gif_lcl_color_tbl_t gifStruct;
+   gifStruct.size = localTableSizeM;
+   IMAGELIB::Result result = decodeStruct((char *) &gifStruct, sizeof(gif_color_triplet_t) * localTableSizeM, bufferM, theInputBuffer, theDecodeIndex);
+   if (IMAGELIB::DONE != result)
+      return result;
+   
+   stateM = PARSING_IMAGE_DATA_LZW_CODE_SIZE;
+   if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+   {
+      stateM = PARSING_ERROR;
+      return IMAGELIB::ERROR;
+   }
+   return IMAGELIB::DONE;
 }
 
 IMAGELIB::Result 
@@ -1006,7 +1040,7 @@ int GifDumper::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 int GifDumper::exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer)
 {
 	cout << "output index:" << theOutputBuffer.length() << endl;
-   cout << "Logical Screen Descriptor:" << endl
+   cout << "Global Color Table:" << endl
       << "\t ..." << endl;
    return 0;
 }
@@ -1047,6 +1081,9 @@ int GifDumper::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer)
 {
+   cout << "output index:" << theOutputBuffer.length() << endl;
+   cout << "Local Color Table:" << endl
+      << "\t ..." << endl;
    return 0;
 }
 

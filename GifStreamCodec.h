@@ -268,6 +268,12 @@ private:
       , string &theOutputBuffer);
 
    IMAGELIB::Result 
+   stateParsingLocalColorTable(
+      const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
    stateParsingImageDataLzwCodeSize(
    const string &theInputBuffer
       , uint64_t &thetheDecodeIndex
