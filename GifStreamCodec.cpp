@@ -310,8 +310,8 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 	IMAGELIB::Result result = IMAGELIB::DONE;
 	while(IMAGELIB::DONE == result && PARSING_DONE != stateM)
 	{
-		if (stateM != PARSING_IMAGE_DATA_BLOCK && stateM != PARSING_IMAGE_DATA_TERMINATOR)
-			cout << "state:" << stateM << endl;
+		//if (stateM != PARSING_IMAGE_DATA_BLOCK && stateM != PARSING_IMAGE_DATA_TERMINATOR)
+		//	cout << "state:" << stateM << endl;
 	   switch(stateM)
 		{
 	      case PARSING_HEADER:
