@@ -23,11 +23,12 @@ void testDecoder(const string& theInputFileName)
 		cout << "can't open file:" << theInputFileName << endl;
 		return;
 	}
+   cout << "input file:" << theInputFileName << endl;
     
 	GifDataStreamDecoder gif_data(
       new GifResizer(2.7, 
-      new GifDumper(
-      new GifEncoder)));
+      //new GifDumper(
+      new GifEncoder));//);
    string output;
 
 	int totalSize = 0;

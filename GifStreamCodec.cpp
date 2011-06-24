@@ -372,8 +372,19 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          case PARSING_TRAILER:
             result = stateParsingTrailer(theInputBuffer, decodeIndex, theOutputBuffer);
 				break;
+            
+         case PARSING_COMMENT_EXTENSION:
+            result = stateParsingCommentExtension(theInputBuffer, decodeIndex, theOutputBuffer);
+				break;
+            
+         case PARSING_LOCAL_COLOR_TABLE:
+         case PARSING_PLAIN_TEXT_EXTENSION:
+         {
+            cout << "state:" << stateM << endl;
+            assert(0);
+            break;
+         }
          
-
 			case PARSING_ERROR:
 			default:
 			{
@@ -671,6 +682,27 @@ GifDataStreamDecoder::stateParsingApplicationExtension(
 {
    gif_appl_ext_t gifStruct;
    IMAGELIB::Result  result = decodeStruct((char *) &gifStruct, sizeof(gif_appl_ext_t), bufferM, theInputBuffer, theDecodeIndex);
+   if (IMAGELIB::DONE != result)
+      return result;
+
+   stateM = PARSING_SUB_BLOCK_TER_SIZE;
+   if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+   {
+      stateM = PARSING_ERROR;
+      return IMAGELIB::ERROR;
+   }
+      
+   return result;
+}
+
+IMAGELIB::Result 
+GifDataStreamDecoder::stateParsingCommentExtension(
+   const string &theInputBuffer
+   , uint64_t &theDecodeIndex
+   , string &theOutputBuffer)
+{
+   gif_comment_ext_t gifStruct;
+   IMAGELIB::Result  result = decodeStruct((char *) &gifStruct, sizeof(gif_comment_ext_t), bufferM, theInputBuffer, theDecodeIndex);
    if (IMAGELIB::DONE != result)
       return result;
 

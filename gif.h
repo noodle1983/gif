@@ -811,8 +811,6 @@ typedef struct
 {
    unsigned char ext_introducer;
    unsigned char comment_label;
-   unsigned char *comment_data;
-   unsigned char block_terminator;
 }gif_comment_ext_t;
 
 /**

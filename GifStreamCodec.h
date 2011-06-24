@@ -292,6 +292,12 @@ private:
       , string &theOutputBuffer);
 
    IMAGELIB::Result 
+   stateParsingCommentExtension(
+      const string &theInputBuffer
+      , uint64_t &theDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
    stateParsingSubBlockTerSize(
    const string &theInputBuffer
       , uint64_t &thetheDecodeIndex
