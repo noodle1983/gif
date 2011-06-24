@@ -224,6 +224,92 @@ public:
    Result decode(const string &theInputBuffer, string &theOutputBuffer);
 
 private:
+   IMAGELIB::Result 
+   stateParsingHeader(
+      const string &theInputBuffer
+      , uint64_t &theDecodeIndex
+      , string &theOutputBuffer);
+   
+   IMAGELIB::Result 
+   stateParsingLogicalScreenDescriptor(
+      const string &theInputBuffer
+      , uint64_t &theDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingGlobalColorTable(
+      const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateCheckDataIntroducor(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+      
+   IMAGELIB::Result 
+   stateCheckDataExtensionLabel(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   /* Graphic Block */
+   IMAGELIB::Result 
+   stateParsingGraphicControlExtension(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+      
+   IMAGELIB::Result 
+   stateParsingImageDescriptor(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingImageDataLzwCodeSize(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingImageDataBlock(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingImageDataTerminator(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingApplicationExtension(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingSubBlockTerSize(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+      
+   IMAGELIB::Result 
+   stateParsingSubBlockTer(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingTrailer(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   
    string bufferM;
    
    int stateM;
