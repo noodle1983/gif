@@ -382,14 +382,11 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
 				break;
             
             
-            
+         //not been tested.
          case PARSING_PLAIN_TEXT_EXTENSION:
-         {
-            cout << "state:" << stateM << endl;
-            assert(0);
-            break;
-         }
-         
+            result = stateParsingPlainTextExtension(theInputBuffer, decodeIndex, theOutputBuffer);
+				break;
+            
 			case PARSING_ERROR:
 			default:
 			{
@@ -513,8 +510,12 @@ GifDataStreamDecoder::stateCheckDataIntroducor(
       result = IMAGELIB::DONE;
       return result;
    }
-   stateM = PARSING_ERROR;
-   return IMAGELIB::ERROR;
+   //cout << "introducer:" << (((int)introducer) & 0xFF) << endl;
+   //stateM = PARSING_ERROR;
+   //end the stream
+   stateM = PARSING_TRAILER;
+   result = IMAGELIB::DONE;
+   return result;
 
 }
 
@@ -811,7 +812,8 @@ const string &theInputBuffer
    IMAGELIB::Result result = decodeStruct((char *) &gifStruct, sizeof(gif_trailer_t), bufferM, theInputBuffer, theDecodeIndex);
    if (IMAGELIB::DONE != result)
       return result;
-   
+
+   gifStruct.trailer = 0x3B;
    stateM = PARSING_DONE;
    if (0 != handlerM->handle(gifStruct, theOutputBuffer))
    {
@@ -822,6 +824,26 @@ const string &theInputBuffer
    return result;
 }
 
+IMAGELIB::Result 
+GifDataStreamDecoder::stateParsingPlainTextExtension(
+const string &theInputBuffer
+   , uint64_t &theDecodeIndex
+   , string &theOutputBuffer)
+{
+   gif_plain_text_ext_t gifStruct;
+   IMAGELIB::Result result = decodeStruct((char *) &gifStruct, sizeof(gif_plain_text_ext_t), bufferM, theInputBuffer, theDecodeIndex);
+   if (IMAGELIB::DONE != result)
+      return result;
+   
+   stateM = PARSING_SUB_BLOCK_TER_SIZE;
+   if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+   {
+      stateM = PARSING_ERROR;
+      return IMAGELIB::ERROR;
+   }
+      
+   return result;
+}
 
 int GifEncoder::exec(gif_header_t &theGifStruct, string &theOutputBuffer)  
 {
@@ -1010,6 +1032,12 @@ int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
 
 int GifResizer::exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)
 {
+   theGifStruct.text_grid_top = (uint16_t)(theGifStruct.text_grid_top/outputRateM);
+   theGifStruct.text_grid_left = (uint16_t)(theGifStruct.text_grid_left/outputRateM);
+   theGifStruct.text_grid_width = (uint16_t)(theGifStruct.text_grid_width/outputRateM);
+   theGifStruct.text_grid_height = (uint16_t)(theGifStruct.text_grid_height/outputRateM);
+   theGifStruct.char_cell_width = (unsigned char)(theGifStruct.char_cell_width/outputRateM);
+   theGifStruct.char_cell_height = (unsigned char)(theGifStruct.char_cell_height/outputRateM);   
    return 0;
 }
 

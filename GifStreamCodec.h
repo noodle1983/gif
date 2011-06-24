@@ -321,6 +321,12 @@ private:
       , uint64_t &thetheDecodeIndex
       , string &theOutputBuffer);
 
+   IMAGELIB::Result 
+   GifDataStreamDecoder::stateParsingPlainTextExtension(
+   const string &theInputBuffer
+      , uint64_t &theDecodeIndex
+      , string &theOutputBuffer);
+
    
    string bufferM;
    
