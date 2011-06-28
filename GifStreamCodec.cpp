@@ -1,4 +1,4 @@
-#include "GifStreamCodec.h"
+#include "GifDataStreamDecoder.h"
 #include <iostream>
 #include <string.h>
 #include <assert.h>

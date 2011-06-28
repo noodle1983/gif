@@ -6,9 +6,9 @@
 using namespace std;
 
 
-#include "GifStreamCodec.h"
-#include "PlainData.h"
-#include "CompressedData.h"
+#include "GifDataStreamDecoder.h"
+//#include "PlainData.h"
+//#include "CompressedData.h"
 using namespace IMAGELIB;
 using namespace IMAGELIB::GIFLIB;
 
@@ -74,7 +74,7 @@ void testLzwCompress()
 		assert(output[i] == rightOutput[i]);
 	}
 }
-
+/*
 void testLzwCompressLargeData()
 {
    cout << "==================================================================================" << endl;
@@ -97,7 +97,7 @@ void testLzwCompressLargeData()
 	}
    cout << "==================================================================================" << endl;
 }
-
+*/
 
 
 void testLzwDecompress()
@@ -117,7 +117,7 @@ void testLzwDecompress()
 	
 }
 
-
+/*
 void testLzwDecompressLargeData()
 {
 	string output;
@@ -144,6 +144,7 @@ void testLzwDecompressLargeData()
 	}
 	
 }
+*/
 
 int main(int argc, char* argv[])
 {
