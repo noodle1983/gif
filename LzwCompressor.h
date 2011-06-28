@@ -1,6 +1,12 @@
 #ifndef IZWCOMPRESSOR_H
 #define IZWCOMPRESSOR_H
 
+#include <stdlib.h>
+#include <string>
+using namespace std;
+
+#include "gif.h"
+#include "GifHanderInterface.h"
 #include "ImageLibStruct.h"
 
 namespace IMAGELIB
@@ -8,10 +14,10 @@ namespace IMAGELIB
 namespace GIFLIB
 {
    
-class IzwCompressor
+class LzwCompressor
 {
 public:
-   IzwCompressor()
+   LzwCompressor()
    {};
    enum{MAX_COLOR_STRING_LEN = 4097};
 

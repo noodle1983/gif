@@ -2,6 +2,7 @@
 #define GIFDUMPER_H
 
 #include "ImageLibStruct.h"
+#include "GifHanderInterface.h"
 
 namespace IMAGELIB
 {

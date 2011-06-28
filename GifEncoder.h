@@ -2,6 +2,8 @@
 #define GIFENCODER_H
 
 #include "ImageLibStruct.h"
+#include "GifHanderInterface.h"
+#include "LzwCompressor.h"
 
 namespace IMAGELIB
 {
@@ -31,7 +33,7 @@ protected:
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(string &theGifPlainData, string &theOutputBuffer);
 
-   IzwCompressor izwCompressor;
+   LzwCompressor lzwCompressor;
    string outputBufferM;
 };
    

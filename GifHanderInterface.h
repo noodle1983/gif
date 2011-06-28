@@ -1,6 +1,11 @@
 #ifndef GIFHANDERINTERFACE_H
 #define GIFHANDERINTERFACE_H
 
+#include <string>
+using namespace std;
+
+#include "gif.h"
+
 namespace IMAGELIB
 {
 namespace GIFLIB

@@ -65,7 +65,7 @@ void testLzwCompress()
 		 0x0c, 0x0a};
 	string input((char*)inputArray, sizeof(inputArray));
 	string output;
-	IzwCompressor compressor;
+	LzwCompressor compressor;
 	compressor.init(2);
 	compressor.compress(input, output);
 	compressor.writeEof(output);
@@ -82,7 +82,7 @@ void testLzwCompressLargeData()
    cout << "total output data should be " << sizeof(COMPRESSED_DATA)  << endl; 
 	string input(GIF_PLAIN_DATA, sizeof(GIF_PLAIN_DATA));
 	string output;
-	IzwCompressor compressor;
+	LzwCompressor compressor;
 	compressor.init(8);
 	compressor.compress(input, output);
 	compressor.writeEof(output);
@@ -107,7 +107,7 @@ void testLzwDecompress()
 		{0x84, 0x02, 0x10, 0x92, 0xb7, 0x0c, 0x0a}};
 	const unsigned char rightOutput[] = 
 		{0, 2, 1, 0, 0, 1, 2, 0, 0, 2, 1, 1, 2, 2, 0, 0};
-	IzwDecompressor decompressor;
+	LzwDecompressor decompressor;
 	decompressor.init(2);
 	decompressor.decompress(input, output);
 	for (int i = 0; i < output.length(); i++)
@@ -122,7 +122,7 @@ void testLzwDecompressLargeData()
 {
 	string output;
 	gif_image_data_block_t input;
-	IzwDecompressor decompressor;
+	LzwDecompressor decompressor;
 	decompressor.init(8);
 	int totalIndex = 0;
 	int totalInputLen = sizeof(COMPRESSED_DATA);

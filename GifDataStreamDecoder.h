@@ -7,9 +7,9 @@ using namespace std;
 
 #include "gif.h"
 #include "GifHanderInterface.h"
-#include "IzwDecompressor.h"
+#include "LzwDecompressor.h"
 #include "ImageLibStruct.h"
-#include "IzwCompressor.h"
+#include "LzwCompressor.h"
 #include "GifEncoder.h"
 #include "GifResizer.h"
 #include "GifDumper.h"
@@ -203,7 +203,7 @@ private:
    
    int stateM;
    GifHanderInterface *handlerM; 
-   IzwDecompressor izwDecompressor;
+   LzwDecompressor lzwDecompressor;
 
    size_t globalTableSizeM;
    size_t localTableSizeM;

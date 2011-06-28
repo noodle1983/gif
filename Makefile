@@ -1,7 +1,14 @@
 
 CCFLAGS=-I.
 
-SRC=main.cpp GifStreamCodec.cpp
+SRC= \
+    GifDataStreamDecoder.cpp \
+    GifDumper.cpp \
+    GifEncoder.cpp \
+    GifResizer.cpp \
+    LzwCompressor.cpp \
+    LzwDecompressor.cpp \
+    main.cpp 
 
 OBJS=$(patsubst %.cpp, %.o, $(SRC) )
 
