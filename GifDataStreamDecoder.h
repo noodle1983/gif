@@ -77,8 +77,8 @@ public:
          
       PARSING_TRAILER = 4000,  
 
-      PARSING_SUB_BLOCK_TER_SIZE = 5000,
-      PARSING_SUB_BLOCK_TER,
+      //PARSING_SUB_BLOCK_TER_SIZE = 5000,
+      //PARSING_SUB_BLOCK_TER,
          
       PARSING_DONE = 6000,
       PARSING_ERROR

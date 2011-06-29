@@ -128,6 +128,10 @@ int GifDumper::exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)
 
 int GifDumper::exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)
 {
+   cout << "output index:" << theOutputBuffer.length() << endl;
+	cout << "Comment Extension:" << endl
+		<< "\t ext_introducer:" << (int)theGifStruct.ext_introducer << endl
+		<< "\t comment_label:" << (int)theGifStruct.comment_label << endl;
    return 0;
 }
 
