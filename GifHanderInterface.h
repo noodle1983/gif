@@ -41,10 +41,11 @@ protected:
    virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_data_sub_block_t &theGifStruct, string &theOutputBuffer)=0;
+   virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_plain_text_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)=0;
-   virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer) = 0;
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer)=0;
    virtual int exec(string &theGifPlainData, string &theOutputBuffer)=0;
    GifHanderInterface *nextHandlerM; 

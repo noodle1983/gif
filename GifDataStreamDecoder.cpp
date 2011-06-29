@@ -76,7 +76,14 @@ GifDataStreamDecoder::decode(const string &theInputBuffer, string &theOutputBuff
          case PARSING_IMAGE_DATA_LZW_CODE_SIZE:
             result = stateParsingImageDataLzwCodeSize(theInputBuffer, decodeIndex, theOutputBuffer);
 				break;
-         
+
+         case PARSING_IMAGE_DATA_SUB_BLOCK:
+            result = stateParsingImageDataSubBlock(theInputBuffer, decodeIndex, theOutputBuffer);
+				break;
+            
+         case PARSING_IMAGE_DATA_SUB_BLOCK_TERMINATOR:
+            result = stateParsingImageDataSubTerminator(theInputBuffer, decodeIndex, theOutputBuffer);
+				break;
 
          case PARSING_DATA_SUB_BLOCK:
             result = stateParsingDataSubBlock(theInputBuffer, decodeIndex, theOutputBuffer);
@@ -362,7 +369,7 @@ const string &theInputBuffer
    if (IMAGELIB::DONE != result)
       return result;
    
-   stateM = PARSING_DATA_SUB_BLOCK_TERMINATOR;
+   stateM = PARSING_IMAGE_DATA_SUB_BLOCK_TERMINATOR;
    gifStruct.lzw_code_size = (gifStruct.lzw_code_size > 8)? 8 : gifStruct.lzw_code_size;
    lzwDecompressor.init(gifStruct.lzw_code_size);
    if (0 != handlerM->handle(gifStruct, theOutputBuffer))
@@ -374,7 +381,7 @@ const string &theInputBuffer
 }
 
 IMAGELIB::Result 
-GifDataStreamDecoder::stateParsingDataSubBlock(
+GifDataStreamDecoder::stateParsingImageDataSubBlock(
 const string &theInputBuffer
    , uint64_t &theDecodeIndex
    , string &theOutputBuffer)
@@ -386,7 +393,7 @@ const string &theInputBuffer
    if (IMAGELIB::DONE != result)
       return result;
    
-   stateM = PARSING_DATA_SUB_BLOCK_TERMINATOR;
+   stateM = PARSING_IMAGE_DATA_SUB_BLOCK_TERMINATOR;
    
    string gifPlainData;
    gifPlainData.reserve(gifStruct.block_size * 2);
@@ -401,12 +408,61 @@ const string &theInputBuffer
 }
 
 IMAGELIB::Result 
-GifDataStreamDecoder::stateParsingDataSubTerminator(
+GifDataStreamDecoder::stateParsingImageDataSubTerminator(
 const string &theInputBuffer
    , uint64_t &theDecodeIndex
    , string &theOutputBuffer)
 {
    gif_image_data_ter_t gifStruct;
+   IMAGELIB::Result result = decodeStruct((char *) &gifStruct, sizeof(gif_image_data_ter_t), bufferM, theInputBuffer, theDecodeIndex);
+   if (IMAGELIB::DONE != result)
+      return result;
+
+   if (0 != gifStruct.terminator){
+      bufferM.append((char*)&gifStruct, sizeof(gif_image_data_ter_t));
+      stateM = PARSING_IMAGE_DATA_SUB_BLOCK;
+      return result;
+   }
+   stateM = CHECK_DATA_INTRODUCOR;
+   if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+   {
+       stateM = PARSING_ERROR;
+      return IMAGELIB::ERROR;
+   }
+      return result;
+   return result;
+}
+
+IMAGELIB::Result 
+GifDataStreamDecoder::stateParsingDataSubBlock(
+const string &theInputBuffer
+   , uint64_t &theDecodeIndex
+   , string &theOutputBuffer)
+{
+   assert (bufferM.length() > 0);
+   gif_data_sub_block_t gifStruct;
+   unsigned char size = bufferM[0];
+   IMAGELIB::Result  result = decodeStruct((char *) &gifStruct, size + 1, bufferM, theInputBuffer, theDecodeIndex);
+   if (IMAGELIB::DONE != result)
+      return result;
+   
+   stateM = PARSING_DATA_SUB_BLOCK_TERMINATOR;
+   
+   if (0 != handlerM->handle(gifStruct, theOutputBuffer))
+   {
+      stateM = PARSING_ERROR;
+      return IMAGELIB::ERROR;
+   }  
+   return result;
+}
+
+IMAGELIB::Result 
+GifDataStreamDecoder::stateParsingDataSubTerminator(
+const string &theInputBuffer
+   , uint64_t &theDecodeIndex
+   , string &theOutputBuffer)
+{
+   gif_data_sub_block_ter_t gifStruct;
    IMAGELIB::Result result = decodeStruct((char *) &gifStruct, sizeof(gif_image_data_ter_t), bufferM, theInputBuffer, theDecodeIndex);
    if (IMAGELIB::DONE != result)
       return result;

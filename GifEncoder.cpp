@@ -80,6 +80,18 @@ int GifEncoder::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer
 }
 
 
+int GifEncoder::exec(gif_data_sub_block_t &theGifStruct, string &theOutputBuffer)
+{
+   theOutputBuffer.append((const char*)&theGifStruct, theGifStruct.block_size + 1);
+   return 0;
+}
+
+int GifEncoder::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)
+{
+   theOutputBuffer.append((const char*)&theGifStruct, sizeof(gif_image_data_ter_t));
+   return 0;
+}
+
 int GifEncoder::exec(string &theGifPlainData, string &theOutputBuffer)
 {
 	lzwCompressor.compress(theGifPlainData, outputBufferM);
@@ -113,12 +125,6 @@ int GifEncoder::exec(gif_appl_ext_t &theGifStruct, string &theOutputBuffer)
 int GifEncoder::exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)
 {
 	theOutputBuffer.append((const char*)&theGifStruct, sizeof(gif_comment_ext_t));
-   return 0;
-}
-
-int GifEncoder::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)
-{
-	theOutputBuffer.append((const char*)&theGifStruct, theGifStruct.block_size + 2);
    return 0;
 }
 

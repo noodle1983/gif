@@ -102,6 +102,17 @@ int GifDumper::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
    return 0;
 }
 
+int GifDumper::exec(gif_data_sub_block_t &theGifStruct, string &theOutputBuffer)
+{
+	cout << ".";
+   return 0;
+}
+
+int GifDumper::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)
+{
+   cout << "\n\t Data Sub-blocks terminator:" << (int)theGifStruct.terminator<< endl;
+   return 0;
+}
 
 int GifDumper::exec(string &theGifPlainData, string &theOutputBuffer)
 {
@@ -132,13 +143,6 @@ int GifDumper::exec(gif_comment_ext_t &theGifStruct, string &theOutputBuffer)
 	cout << "Comment Extension:" << endl
 		<< "\t ext_introducer:" << (int)theGifStruct.ext_introducer << endl
 		<< "\t comment_label:" << (int)theGifStruct.comment_label << endl;
-   return 0;
-}
-
-int GifDumper::exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer)
-{
-	cout << "output index:" << theOutputBuffer.length() << endl;
-	cout << "\t data_sub_block and Terminator bytes:" << (theGifStruct.block_size + 2) << endl;
    return 0;
 }
 

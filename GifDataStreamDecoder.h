@@ -66,8 +66,8 @@ public:
       PARSING_LOCAL_COLOR_TABLE,
       
       PARSING_IMAGE_DATA_LZW_CODE_SIZE,
-      PARSING_DATA_SUB_BLOCK,
-      PARSING_DATA_SUB_BLOCK_TERMINATOR,
+      PARSING_IMAGE_DATA_SUB_BLOCK,
+      PARSING_IMAGE_DATA_SUB_BLOCK_TERMINATOR,
       
       PARSING_PLAIN_TEXT_EXTENSION = 2200,
 
@@ -76,7 +76,10 @@ public:
       PARSING_COMMENT_EXTENSION,
          
       PARSING_TRAILER = 4000,  
-         
+
+      PARSING_DATA_SUB_BLOCK = 5000,
+      PARSING_DATA_SUB_BLOCK_TERMINATOR,
+      
       PARSING_DONE = 6000,
       PARSING_ERROR
    };
@@ -147,6 +150,18 @@ private:
       , uint64_t &thetheDecodeIndex
       , string &theOutputBuffer);
 
+   IMAGELIB::Result 
+   stateParsingImageDataSubBlock(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+
+   IMAGELIB::Result 
+   stateParsingImageDataSubTerminator(
+   const string &theInputBuffer
+      , uint64_t &thetheDecodeIndex
+      , string &theOutputBuffer);
+   
    IMAGELIB::Result 
    stateParsingDataSubBlock(
    const string &theInputBuffer

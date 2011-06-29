@@ -85,7 +85,11 @@ typedef struct
 {
    unsigned char block_size;
    char data_value[256];
-   unsigned char block_terminator;
+}gif_data_sub_block_t;
+
+typedef struct
+{
+   unsigned char terminator;
 }gif_data_sub_block_ter_t;
 
 /**
