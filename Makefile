@@ -13,7 +13,7 @@ SRC= \
 OBJS=$(patsubst %.cpp, %.o, $(SRC) )
 
 all:$(OBJS)
-	g++ -o test $(OBJS)
+	g++ -o GifResizer $(OBJS)
 
 %.o: %.cpp
 	g++ -g -c $< -o $@ $(CCFLAGS) 

@@ -48,7 +48,7 @@ void testDecoder(const string& theInputFileName)
 	}
    in.close();
 
-	string outputFileName = string("tiny_") + theInputFileName;
+	string outputFileName = theInputFileName + string(".tiny.gif");
    ofstream out;
    out.open (outputFileName.c_str(), ofstream::binary );
    out.write(output.c_str(), output.length());
