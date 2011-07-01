@@ -17,7 +17,8 @@ public:
          : outputRateM(thetRate)
          , GifHanderInterface(theNextHandler)
          , disposalMethodM(0)
-         , frameIndexM(0){};
+         , frameIndexM(0)
+         , hasTpColorM(0){};
    
 protected:  
    virtual int exec(gif_header_t &theGifStruct, string &theOutputBuffer){return 0;};  
@@ -28,7 +29,7 @@ protected:
    virtual int exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_image_data_block_t &theGifStruct, string &theOutputBuffer){return 0;};
-   virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer){return 0;};
+   virtual int exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_data_sub_block_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_data_sub_block_ter_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(string &theGifPlainData, string &theOutputBuffer);
@@ -39,6 +40,7 @@ protected:
 
    unsigned char lzwCodeSizeM;
    unsigned char disposalMethodM;
+   bool hasTpColorM;
    unsigned char tpColorIndexM;
    unsigned char bgColorIndexM;
    float outputRateM; //input /output, should > 1.0

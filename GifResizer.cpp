@@ -19,6 +19,7 @@ int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 int GifResizer::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer)
 {
    disposalMethodM = theGifStruct.flag.disposal_method;
+   hasTpColorM = theGifStruct.flag.transparent_color_flag;
    tpColorIndexM = theGifStruct.transparent_color_index;
    return 0;
 }
@@ -32,7 +33,15 @@ int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
    theGifStruct.image_left = (uint16_t)(theGifStruct.image_left/outputRateM);
    theGifStruct.image_top  = (uint16_t)(theGifStruct.image_top/outputRateM);
    theGifStruct.image_width = (uint16_t)(theGifStruct.image_width/outputRateM);
+   if (theGifStruct.image_left + theGifStruct.image_width < logicScreenWidthM)
+      theGifStruct.image_width++;
+   if (theGifStruct.image_left + theGifStruct.image_width < logicScreenWidthM)
+      theGifStruct.image_width++;
    theGifStruct.image_height = (uint16_t)(theGifStruct.image_height/outputRateM);
+   if (theGifStruct.image_top + theGifStruct.image_height < logicScreenHeightM)
+      theGifStruct.image_height++;
+   if (theGifStruct.image_top + theGifStruct.image_height < logicScreenHeightM)
+      theGifStruct.image_height++;
    outputFrameWidthM = theGifStruct.image_width;
    outputFrameHeightM = theGifStruct.image_height;
    frameIndexM++;
@@ -61,21 +70,18 @@ int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
    for (int i = 0; i < theGifPlainData.length(); i++)
    {
       unsigned char curColor = theGifPlainData[i];
-      if (1 == frameIndexM)
+      unsigned screenX = curXM + inputFrameTopM;
+      unsigned screenY = curYM + inputFrameLeftM;
+      long long inputFrameBufferIndex = screenX*logicScreenWidthM+screenY;
+      if (1 == disposalMethodM && 1 != frameIndexM)
       {
-         unsigned screenX = curXM + inputFrameTopM;
-         unsigned screenY = curYM + inputFrameLeftM;
-         long long inputFrameBufferIndex = screenX*logicScreenWidthM+screenY;
-         inputFrameBufferM[inputFrameBufferIndex] = curColor;
-      }else if (1 == disposalMethodM)
-      {
-         unsigned screenX = curXM + inputFrameTopM;
-         unsigned screenY = curYM + inputFrameLeftM;
-         long long inputFrameBufferIndex = screenX*logicScreenWidthM+screenY;
-         if (curColor == tpColorIndexM)
+         if (hasTpColorM && curColor == tpColorIndexM)
             curColor = inputFrameBufferM[inputFrameBufferIndex] ;
          else 
             inputFrameBufferM[inputFrameBufferIndex] = curColor;
+      }else
+      {
+         inputFrameBufferM[inputFrameBufferIndex] = curColor;
       }
 
       //x * width + y
@@ -92,6 +98,12 @@ int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
    }
 
    theGifPlainData = outputData;
+   return 0;
+}
+
+int GifResizer::exec(gif_image_data_ter_t &theGifStruct, string &theOutputBuffer)
+{
+   hasTpColorM = 0;
    return 0;
 }
 
