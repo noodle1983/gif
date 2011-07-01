@@ -6,9 +6,20 @@ using namespace IMAGELIB::GIFLIB;
 
 int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
 {
-   assert(outputRateM > 1.0);
+   assert(outputRateM >= 1.0);
+   logicScreenWidthM = theGifStruct.lgc_scr_width;
+   logicScreenHeightM = theGifStruct.lgc_scr_height;
    theGifStruct.lgc_scr_width = (uint16_t)(theGifStruct.lgc_scr_width/outputRateM);
    theGifStruct.lgc_scr_height = (uint16_t)(theGifStruct.lgc_scr_height/outputRateM);
+   bgColorIndexM = theGifStruct.bg_color_index;
+   inputFrameBufferM.assign(logicScreenWidthM*logicScreenHeightM, bgColorIndexM);
+   return 0;
+}
+
+int GifResizer::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer)
+{
+   disposalMethodM = theGifStruct.flag.disposal_method;
+   tpColorIndexM = theGifStruct.transparent_color_index;
    return 0;
 }
 
@@ -16,12 +27,15 @@ int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
 {
    inputFrameWidthM = theGifStruct.image_width;
    inputFrameHeightM = theGifStruct.image_height;
+   inputFrameLeftM = theGifStruct.image_left;
+   inputFrameTopM = theGifStruct.image_top;
    theGifStruct.image_left = (uint16_t)(theGifStruct.image_left/outputRateM);
    theGifStruct.image_top  = (uint16_t)(theGifStruct.image_top/outputRateM);
    theGifStruct.image_width = (uint16_t)(theGifStruct.image_width/outputRateM);
    theGifStruct.image_height = (uint16_t)(theGifStruct.image_height/outputRateM);
    outputFrameWidthM = theGifStruct.image_width;
    outputFrameHeightM = theGifStruct.image_height;
+   frameIndexM++;
    return 0;
 }
 
@@ -47,6 +61,22 @@ int GifResizer::exec(string &theGifPlainData, string &theOutputBuffer)
    for (int i = 0; i < theGifPlainData.length(); i++)
    {
       unsigned char curColor = theGifPlainData[i];
+      if (1 == frameIndexM)
+      {
+         unsigned screenX = curXM + inputFrameTopM;
+         unsigned screenY = curYM + inputFrameLeftM;
+         long long inputFrameBufferIndex = screenX*logicScreenWidthM+screenY;
+         inputFrameBufferM[inputFrameBufferIndex] = curColor;
+      }else if (1 == disposalMethodM)
+      {
+         unsigned screenX = curXM + inputFrameTopM;
+         unsigned screenY = curYM + inputFrameLeftM;
+         long long inputFrameBufferIndex = screenX*logicScreenWidthM+screenY;
+         if (curColor == tpColorIndexM)
+            curColor = inputFrameBufferM[inputFrameBufferIndex] ;
+         else 
+            inputFrameBufferM[inputFrameBufferIndex] = curColor;
+      }
 
       //x * width + y
       unsigned outputX = (unsigned)(((float)curXM) * outputFrameHeightM / inputFrameHeightM);

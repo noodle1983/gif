@@ -15,13 +15,15 @@ public:
    GifResizer(const float thetRate,
       GifHanderInterface *theNextHandler)
          : outputRateM(thetRate)
-         , GifHanderInterface(theNextHandler){};
+         , GifHanderInterface(theNextHandler)
+         , disposalMethodM(0)
+         , frameIndexM(0){};
    
 protected:  
    virtual int exec(gif_header_t &theGifStruct, string &theOutputBuffer){return 0;};  
    virtual int exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_glb_color_tbl_t &theGifStruct, string &theOutputBuffer){return 0;};
-   virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer){return 0;};
+   virtual int exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer);
    virtual int exec(gif_lcl_color_tbl_t &theGifStruct, string &theOutputBuffer){return 0;};
    virtual int exec(gif_lzw_code_size_t &theGifStruct, string &theOutputBuffer);
@@ -36,15 +38,25 @@ protected:
    virtual int exec(gif_trailer_t &theGifStruct, string &theOutputBuffer){return 0;};
 
    unsigned char lzwCodeSizeM;
+   unsigned char disposalMethodM;
+   unsigned char tpColorIndexM;
+   unsigned char bgColorIndexM;
    float outputRateM; //input /output, should > 1.0
 
+   unsigned logicScreenWidthM;
+   unsigned logicScreenHeightM;
+   unsigned inputFrameLeftM;
+   unsigned inputFrameTopM;
    unsigned inputFrameWidthM;
    unsigned inputFrameHeightM;
    unsigned outputFrameWidthM;
    unsigned outputFrameHeightM;
    long long outputFrameIndexM;
     
+   unsigned frameIndexM;
    unsigned curXM, curYM;
+   string inputFrameBufferM;
+   
 };
 
 
