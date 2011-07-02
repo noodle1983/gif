@@ -27,8 +27,8 @@ void testDecoder(const string& theInputFileName)
     
 	GifDataStreamDecoder gif_data(
       new GifResizer(1.8, 
-      new GifDumper(
-      new GifEncoder)));
+      //new GifDumper(
+      new GifEncoder));//);
    string output;
 
 	int totalSize = 0;

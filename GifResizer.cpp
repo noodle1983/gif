@@ -11,6 +11,8 @@ int GifResizer::exec(gif_lgc_scr_desc_t &theGifStruct, string &theOutputBuffer)
    logicScreenHeightM = theGifStruct.lgc_scr_height;
    theGifStruct.lgc_scr_width = (uint16_t)(theGifStruct.lgc_scr_width/outputRateM);
    theGifStruct.lgc_scr_height = (uint16_t)(theGifStruct.lgc_scr_height/outputRateM);
+	outputLgcScrWidthM = theGifStruct.lgc_scr_width;
+	outputLgcScrHeightM = theGifStruct.lgc_scr_height;
    bgColorIndexM = theGifStruct.bg_color_index;
    inputFrameBufferM.assign(logicScreenWidthM*logicScreenHeightM, bgColorIndexM);
    return 0;
@@ -33,14 +35,14 @@ int GifResizer::exec(gif_image_desc_t &theGifStruct, string &theOutputBuffer)
    theGifStruct.image_left = (uint16_t)(theGifStruct.image_left/outputRateM);
    theGifStruct.image_top  = (uint16_t)(theGifStruct.image_top/outputRateM);
    theGifStruct.image_width = (uint16_t)(theGifStruct.image_width/outputRateM);
-   if (theGifStruct.image_left + theGifStruct.image_width < logicScreenWidthM)
+   if (theGifStruct.image_left + theGifStruct.image_width < outputLgcScrWidthM)
       theGifStruct.image_width++;
-   if (theGifStruct.image_left + theGifStruct.image_width < logicScreenWidthM)
+   if (theGifStruct.image_left + theGifStruct.image_width < outputLgcScrWidthM)
       theGifStruct.image_width++;
    theGifStruct.image_height = (uint16_t)(theGifStruct.image_height/outputRateM);
-   if (theGifStruct.image_top + theGifStruct.image_height < logicScreenHeightM)
+   if (theGifStruct.image_top + theGifStruct.image_height < outputLgcScrHeightM)
       theGifStruct.image_height++;
-   if (theGifStruct.image_top + theGifStruct.image_height < logicScreenHeightM)
+   if (theGifStruct.image_top + theGifStruct.image_height < outputLgcScrHeightM)
       theGifStruct.image_height++;
    outputFrameWidthM = theGifStruct.image_width;
    outputFrameHeightM = theGifStruct.image_height;

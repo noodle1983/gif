@@ -47,6 +47,8 @@ protected:
 
    unsigned logicScreenWidthM;
    unsigned logicScreenHeightM;
+   unsigned outputLgcScrWidthM;
+   unsigned outputLgcScrHeightM;
    unsigned inputFrameLeftM;
    unsigned inputFrameTopM;
    unsigned inputFrameWidthM;
