@@ -23,6 +23,11 @@ int GifResizer::exec(gif_graphic_ctrl_ext_t &theGifStruct, string &theOutputBuff
    disposalMethodM = theGifStruct.flag.disposal_method;
    hasTpColorM = theGifStruct.flag.transparent_color_flag;
    tpColorIndexM = theGifStruct.transparent_color_index;
+
+   if (2 == disposalMethodM)
+   {
+      inputFrameBufferM.assign(logicScreenWidthM*logicScreenHeightM, bgColorIndexM);
+   }
    return 0;
 }
 
